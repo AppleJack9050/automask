@@ -106,7 +106,13 @@ def main():
     pil_image = Image.open(image_path).convert("RGB")
     w, h = pil_image.size
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # select the device for computation
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
     base_tensor = image_to_tensor(np.array(pil_image)).float().unsqueeze(0).to(device) / 255.0
 
     screen_w, screen_h = get_screen_size()
