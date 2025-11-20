@@ -1,0 +1,7 @@
+opencv-python
+torchvision
+sam2
+python-dotenv
+fastapi
+uvicorn
+python-multipart

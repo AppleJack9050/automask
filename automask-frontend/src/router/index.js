@@ -1,11 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import InputFileView from '@/views/InputFileView.vue'
-import EditFileView from '@/views/EditFileView.vue'
-import FileStatus from '@/views/FileStatus.vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -15,25 +12,22 @@ const router = createRouter({
     {
       path: '/input-files',
       name: 'Input',
-      component: () => InputFileView
+      component: () => import('../views/InputFileView.vue')
     },
     {
       path: '/edit-file/:imageTitle',
       name: 'Edit',
-      component: () => EditFileView,
+      component: () => import('../views/EditFileView.vue'),
       props:true
     },
     {
       path: '/view-files',
       name: 'View Files',
-      component: () => FileStatus
+      component: () => import('../views/FileStatus.vue')
     },
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
   ],

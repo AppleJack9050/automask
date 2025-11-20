@@ -238,35 +238,40 @@ export default {
       this.$emit('saveImage', this.shownImage);
     }
   },
-  async created() {
-    if (this.baseImage) {
-      try {
-        this.shownImage = this.baseImage;
-        const image = new Image();
-        image.src = `data:image/png;base64,${this.baseImage}`;
-        for (const layer of this.masks) {
-          console.log('a');
-          const img = new Image();
-          img.src = `data:image/png;base64,${await this.convertMaskTransparant(layer)}`;
-          await image.decode();
+  watch: {
+    baseImage: {
+      immediate: true,
+      async handler(newImage) {
+        if (newImage) {
+          console.log("Yippe");
+          try {
+            this.shownImage = this.baseImage;
+            const image = new Image();
+            image.src = `data:image/png;base64,${this.baseImage}`;
+            for (const layer of this.masks) {
+              const img = new Image();
+              img.src = `data:image/png;base64,${await this.convertMaskTransparant(layer)}`;
+              await img.decode();
 
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          canvas.width = img.width
-          canvas.height = img.height
-          ctx.drawImage(img, 0, 0)
-          this.layers.push({
-            img,
-            width: img.width,
-            height: img.height,
-            data: ctx.getImageData(0, 0, img.width, img.height).data
-          });
-          console.log('edit me ');
+              const canvas = document.createElement('canvas')
+              const ctx = canvas.getContext('2d')
+              canvas.width = img.width
+              canvas.height = img.height
+              ctx.drawImage(img, 0, 0)
+              this.layers.push({
+                img,
+                width: img.width,
+                height: img.height,
+                data: ctx.getImageData(0, 0, img.width, img.height).data
+              });
+              console.log('e ');
+            }
+          } catch (e) {
+            // fail 
+          } finally {
+            this.loading = false;
+          }
         }
-      } catch (e) {
-        // fail 
-      } finally {
-        this.loading = false;
       }
     }
   }

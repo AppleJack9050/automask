@@ -77,7 +77,7 @@ class FileProcessor():
 
             mask_image = Image.fromarray(mask["segmentation"])
             mask_image.save(mask_dir / f"mask_{index}.png")
-            logger.info(f"Saving Mask {index} at: {mask_dir / f"mask_{index}.png"}")
+            logger.info(f"Saving Mask {index} at: {mask_dir} / mask_{index}.png")
 
         del masks
         gc.collect()

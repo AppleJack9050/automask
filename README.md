@@ -1,46 +1,8 @@
 # AutoMask Application Quick Start Guide
 
-This guide provides instructions for setting up and running the AutoMask API (backend) and Vue web application (frontend).
+First to start make sure that you have sam2 downloaded, and inside of the api subfolder as this is where docker pulls it from.
 
-## Prerequisites and Environment Setup
-
-### 1. Conda Environment Management
-
-We recommend using **Conda** for isolated and efficient package management.
-
-* **Conda Installation:** If you do not have Conda installed, please follow the official installation guide [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
-
-* **Create Environment:** Use the following command to create a new Conda environment named `automask-env` and install all required Python dependencies from `requirements.txt`:
-
-```conda create --name automask-env --file requirements.txt```
-
-### 2. Frontend Dependencies (npm)
-
-The frontend requires **Node Package Manager**.
-
-* **npm Installation:** Ensure you have npm installed by following the guide [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
-
-## API and Webapp Quick Start
-
-### 1. Starting the Backend API
-
-```cd ./api```
-```uvicorn endpoints:app --reload```
-
-### 2. Starting the Frontend Webapp (Vue)
-
-cd ./automask-frontend
-
-**Install** the necessary Node modules:
-
-```npm install```
-
-**Start** the development server:
-
-```npm run dev```
-
-The web application will start at`http://localhost:5173`
-
+All you need to to do run it next is use ```docker compose up```. Because of SAM2 this image is a big boy so it may take a little while to build
 ## Usage Guide
 
 ### Step 1: Upload Files

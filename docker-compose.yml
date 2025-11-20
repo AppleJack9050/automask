@@ -1,0 +1,37 @@
+services:
+  automask-api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - SAM2_FULL_PATH=/api/sam2
+      - SAM2_CHECKPOINT=checkpoints/sam2.1_hiera_large.pt
+      - SAM2_CONFIG=configs/sam2.1/sam2.1_hiera_l.yaml
+    volumes:
+      - uploads:/api/uploads
+      - processed:/api/processed
+      - saved:/api/saved
+    ports:
+      - "8000:80"
+    networks:
+      - app-network
+  
+  automask-frontend:
+    build:
+      context: ./automask-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+  ### TODO: impliment healthchecks later 
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  uploads:
+  processed:
+  saved:

@@ -18,7 +18,6 @@ const filesStore = useFileStore();
 
 function onChange(event) {
   filesStore.addFile(...event.target.files);
-  console.log(filesStore.getFiles);
 }
 
 function handleDrop(event) {
