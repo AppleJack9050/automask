@@ -68,7 +68,6 @@ class FileProcessor():
         masks = self.__generate_sam2_masking(str(Path(self.target_directory) / file))
         os.remove(str(Path(self.target_directory) / file))
 
-        masks["image"].save(target_processed_folder / f"{file}.jpg")
         for index, mask in enumerate(masks["masks"]):
             mask_image = mask["segmentation"]
 
@@ -78,7 +77,8 @@ class FileProcessor():
             mask_image = Image.fromarray(mask["segmentation"])
             mask_image.save(mask_dir / f"mask_{index}.png")
             logger.info(f"Saving Mask {index} at: {mask_dir} / mask_{index}.png")
-
+        
+        masks["image"].save(target_processed_folder / f"{file}")
         del masks
         gc.collect()
 
@@ -86,7 +86,6 @@ class FileProcessor():
         """Generates the object masks from sam2"""
         image = Image.open(image)
         image = image.resize((1024, 1024))
-        #image = image.resize((512, 512))
         image_np = np.array(image.convert("RGB"), dtype=np.uint8)
         mask_generator = SAM2AutomaticMaskGenerator(self.sam2_model)
         masks = mask_generator.generate(image_np)
@@ -103,5 +102,3 @@ class FileProcessor():
         sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=self.device, apply_postprocessing=False)
         os.chdir(cwd)
         return sam2_model
-
-

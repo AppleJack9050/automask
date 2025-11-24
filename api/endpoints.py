@@ -39,6 +39,10 @@ async def get_files():
 
         files_being_processed = queue
 
+    for file in files_being_processed:
+        if file in unprocessed_files:
+            unprocessed_files.remove(file)
+
     return JSONResponse([
         {"Unprocessed": unprocessed_files},
         {"Processing": files_being_processed},
@@ -58,7 +62,7 @@ async def put_files(files: List[UploadFile] = File(...)):
     saved_files = await file_handler.handle_multiple_files(files)
     return {"uploaded": saved_files}
 
-@app.post("/show-file/{file_name}")
+@app.get("/show-file/{file_name}")
 async def show_editor(file_name: str):
     file_path = os.path.join(processed_file_directory, Path(file_name).stem)
     if not os.path.exists(file_path):

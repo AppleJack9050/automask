@@ -18,6 +18,9 @@ export const useFileStore = defineStore('files',  {
       if (index > -1) {
         this.files.splice(index, 1)
       } 
+    },
+    empty() {
+      this.files = [];
     }
   }
 })

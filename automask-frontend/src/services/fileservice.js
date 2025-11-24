@@ -30,7 +30,7 @@ async function putFiles(files) {
     });
 }
 async function showEditor(fileName) {
-    return await apiClient.post(
+    return await apiClient.get(
       `/show-file/${fileName}`,
       basicHeaders
     )
@@ -55,6 +55,11 @@ async function saveImage(file, fileName, fileType) {
     );
     return response;
   } catch (error) {
+    this.$notify({
+      title:'Error',
+      text:error.message,
+      type:'error'
+    })
   }
 }
 async function downloadImage(fileName) {
@@ -67,6 +72,11 @@ async function downloadImage(fileName) {
     );
     return response;
   } catch (error) {
+    this.$notify({
+      title:'Error',
+      text:error.message,
+      type:'error'
+    })
   }
 }
 

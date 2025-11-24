@@ -19,7 +19,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@kyvg/vue3-notification": "^3.4.1",
+    "@kyvg/vue3-notification": "^3.4.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.13.1",
     "pinia": "^3.0.3",

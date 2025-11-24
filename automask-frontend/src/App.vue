@@ -9,6 +9,7 @@ const routes = router.getRoutes();
 
 <template>
   <div id="app">
+    <notifications />
     <Sidebar />
     <Suspense>
       <template #default>

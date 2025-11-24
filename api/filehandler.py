@@ -27,6 +27,8 @@ class Filehandler:
 
         for root, _, files in os.walk(temp_directory):
             for f in files:
+                if f.startswith('._') or f.endswith('.zip'):
+                    continue
                 src_path = os.path.join(root, f)
                 dest_path = os.path.join(self.directory, f)
                 base, ext = os.path.splitext(f)
@@ -61,7 +63,6 @@ class Filehandler:
                 shutil.move(src_path, dest_path)
         shutil.rmtree(temp_directory)
 
-
     async def handle_single_file(self, file, filename):
         file_path = os.path.join(self.directory, filename)
         with open(file_path, "wb") as out_file:
@@ -78,7 +79,7 @@ class Filehandler:
                     self.handle_tar(file, filename)
                 case _:
                     await self.handle_single_file(file, filename)
-        
+
         return saved_files
 
     def return_base_image(self, path, image_title):

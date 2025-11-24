@@ -1,19 +1,20 @@
 <script setup>
 import InputFiles from '@/components/input-components/InputFiles.vue';
 import fileService from "@/services/fileservice";
-import { notify } from "@kyvg/vue3-notification";
+import { useNotification } from "@kyvg/vue3-notification"
 import { useFileStore } from '@/stores/filestore';
 const filesStore = useFileStore();
+const { notify } = useNotification()
 
 async function uploadFiles() {
   try {
     const result = await fileService.putFiles(filesStore.getFiles);
     notify({
       text: result, 
-      title: 'Success'
+      title: 'Success',
+      text:'Uploaded Successfully'
     })
   } catch (e) {
-    console.log(e);
     notify({
       text: e.message, 
       title: 'Error',

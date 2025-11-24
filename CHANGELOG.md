@@ -5,7 +5,6 @@
 - [feature] allowing user edit images
 - [feature] allowing user download edited images
 - [feature] dockerised
-
+- [feature] adding notifications
 ### future minor fixes
-- add notifications
 - allow file with spaces

@@ -59,12 +59,30 @@ export default {
   async mounted() {
     if (this.imageTitle !== undefined) {
       try {
-        const assets = await fileService.showEditor(this.imageTitle);
-        this.baseImage = assets.data.image;
-        this.masks = assets.data.masks;
+        const interval = setInterval(async () => {
+          const assets = await fileService.showEditor(this.imageTitle);
+          if (assets.data.masks.length > 0) {
+            clearInterval(interval);
+            clearTimeout(timeout);
+            this.baseImage = assets.data.image;
+            this.masks = assets.data.masks;
+          }
+        }, 5000);
+
+        const timeout = setTimeout(() => {
+          this.$notify({
+          title:'Error',
+          text:'Timed out waiting for assets',
+          type:'error'
+        })
+          clearInterval(interval);
+        }, 30000);
       } catch (e) {
-        console.log(e);
-        // get notifications working 
+        this.$notify({
+          title:'Error',
+          text:e.message,
+          type:'error'
+        })
       }
     } 
   }

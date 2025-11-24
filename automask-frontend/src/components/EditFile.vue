@@ -39,19 +39,19 @@
         :style="{ top: contextY + 'px', left: contextX + 'px' }"    
         ></ContextMenu>
     </div>
-    <div v-else class="center">
-      Loading Image
-      <i class="bi bi-arrow-clockwise spin" style="font-size: 4rem;"></i>
+    <div v-else >
+      <loading></loading>      
     </div>
   </div>
 </template>
 
 <script>
 import ContextMenu from './ContextMenu.vue';
-
+import Loading from './Loading.vue';
 export default {
   components: {
-    ContextMenu
+    ContextMenu,
+    Loading
   },
   props: {
     baseImage:{
@@ -68,12 +68,6 @@ export default {
       hoveredMask: null,
       maskRefs: [],
       layers: [],
-      maskColours: [
-      'hue-rotate(0deg) brightness(1.2)',
-      'hue-rotate(90deg) brightness(1.2)',
-      'hue-rotate(180deg) brightness(1.2)',
-      'hue-rotate(270deg) brightness(1.2)'
-    ],
     loading:true,
     contextId: null,
     contextX: null,
@@ -243,7 +237,6 @@ export default {
       immediate: true,
       async handler(newImage) {
         if (newImage) {
-          console.log("Yippe");
           try {
             this.shownImage = this.baseImage;
             const image = new Image();
@@ -264,10 +257,13 @@ export default {
                 height: img.height,
                 data: ctx.getImageData(0, 0, img.width, img.height).data
               });
-              console.log('e ');
             }
           } catch (e) {
-            // fail 
+            this.$notify({
+            title:'Error',
+            text:e.message,
+            type:'error'
+          })
           } finally {
             this.loading = false;
           }
@@ -277,23 +273,3 @@ export default {
   }
 };
 </script>
-
-<style>
-image {
-  pointer-events: visiblePainted;
-}
-
-.center {
-  margin: 50%;
-  width: 100%;
-}
-
-.spin {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>
