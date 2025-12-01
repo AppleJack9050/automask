@@ -1,10 +1,13 @@
 ### Implimented
 
-- [feature] adding api
-- [feature] allowing user to upload and batch process masks
-- [feature] allowing user edit images
-- [feature] allowing user download edited images
+- [feature] add api
+- [feature] allow user to upload and batch process masks
+- [feature] allow user edit images
+- [feature] allow user download edited images
 - [feature] dockerised
-- [feature] adding notifications
-### future minor fixes
+- [feature] add notifications
+- [feature] add touch up tool
+
+### future fixes
 - allow file with spaces
+- refactor EditFile.vue

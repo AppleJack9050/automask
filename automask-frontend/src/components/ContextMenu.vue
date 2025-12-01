@@ -10,6 +10,12 @@
       <li>
         <a class="dropdown-item" @click="save">Save Current Image</a>
       </li>
+      <li>
+        <a class="dropdown-item" @click="startTouchUp">Use Touch Up Tool</a>
+      </li>
+      <li v-if="usingTouchUp">
+        <a class="dropdown-item" @click="endTouchUp">Close Touch Up Tool</a>        
+      </li>
     </ul>
   </div>
 </template>
@@ -17,7 +23,11 @@
 <script>
 export default {
   props: {
-    id: String
+    id: String,
+    usingTouchUp: {
+      type: Boolean,
+      default: false
+    }
   },
   methods: {
     selectObject() {
@@ -28,6 +38,12 @@ export default {
     },
     save() {
       this.$emit('save');
+    },
+    startTouchUp() {
+      this.$emit('start');
+    },
+    endTouchUp() {
+      this.$emit('end');
     }
   }
 }

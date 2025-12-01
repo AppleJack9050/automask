@@ -8,8 +8,11 @@
         :width="1200"
         :height="1200"
         viewBox="0 0 1200 1200"
-        @mousemove="highlightMask" 
-        @mouseleave="this.hoveredMask = null" 
+        @mousemove="highlight" 
+        @mouseleave="this.hoveredMask = null; this.editingPixels = false"
+        @mousedown.left="this.editingPixels = true"
+        @mouseup.left="this.editingPixels = false"
+        @mouseup.right="this.touchingUp = false"
       >
         <image
           :href="`data:image/png;base64,${shownImage}`"
@@ -29,17 +32,42 @@
             @contextmenu="handleRightClick($event, index)"
           />
         </g>
+        <circle
+          :opacity="touchingUp ? 0.5 : 0"
+          :cx="highlightX"
+          :cy="highlightY"
+          :r="touchUpRadius"
+          fill="red"
+          class="highlight"
+          @contextmenu="handleRightClick($event, index)"
+        >
+        </circle>
       </svg>
       <ContextMenu
         v-if="contextId"
         :id="contextId"
+        :usingTouchUp="touchingUp"
         @select="selectOnlyObject"
         @remove="removeObject"
         @save="save"
+        @start="showTouchUp"
+        @end="hideTouchUp"
         :style="{ top: contextY + 'px', left: contextX + 'px' }"    
         ></ContextMenu>
+        <br></br>
+        <div v-if="touchingUp">
+          <label for="slider" class="form-label">Select Brush Size: {{ touchUpRadius }} px</label>
+          <input
+            type="range"
+            class="form-range"
+            min="5"
+            max="100"
+            step="5"
+            v-model="touchUpRadius"
+          />
+        </div>
     </div>
-    <div v-else >
+    <div v-else>
       <loading></loading>      
     </div>
   </div>
@@ -68,17 +96,31 @@ export default {
       hoveredMask: null,
       maskRefs: [],
       layers: [],
-    loading:true,
-    contextId: null,
-    contextX: null,
-    contextY: null,
-    shownImage: null
+      loading:true,
+      contextId: null,
+      contextX: null,
+      contextY: null,
+      shownImage: null,
+      touchingUp: false,
+      touchUpRadius:10,
+      highlightX: null,
+      highlightY: null,
+      editingPixels: false,
+      touchUpCtx: null,
+      touchUpCanvas: null
     }
   },
   computed: {
   },
   methods: {
-    highlightMask(e) {
+    highlight(e) {
+      if (this.touchingUp) {
+        if (this.editingPixels) {
+          this.handleTouchUp(e);
+          return this.removePixels(e);
+        }
+        return this.handleTouchUp(e);
+      }
 
       const svg = e.currentTarget;
       const point = svg.createSVGPoint();
@@ -88,7 +130,7 @@ export default {
       const masks = svg.querySelectorAll('.mask');
 
       if (masks.length === 0 ) {
-        return
+        return;
       }
 
       const w = parseFloat(masks[0].getAttribute('width'));
@@ -163,8 +205,7 @@ export default {
 
       ctx.drawImage(shownImage, 0, 0);
 
-      const shownData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const shownPixels = shownData.data;
+      const shownPixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
       const maskCanvas = document.createElement('canvas');
       const maskCtx = maskCanvas.getContext('2d');
@@ -179,7 +220,7 @@ export default {
         const b = maskData[i + 2];
         const alpha = maskData[i + 3];
 
-        if (r > 200 && g > 200 && b > 200 && alpha > 0) {
+        if (r > 1 && g > 1 && b > 1 && alpha > 0) {
           shownPixels[i + 3] = 0;
         }
       }
@@ -205,8 +246,7 @@ export default {
 
       ctx.drawImage(shownImage, 0, 0);
 
-      const shownData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const shownPixels = shownData.data;
+      const shownPixels =ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
       const maskCanvas = document.createElement('canvas');
       const maskCtx = maskCanvas.getContext('2d');
@@ -230,6 +270,81 @@ export default {
     },
     save() {
       this.$emit('saveImage', this.shownImage);
+    },
+    async removePixels(e) {
+      const svg = e.currentTarget;
+      if (!this.touchingUp || !svg) {
+        return;
+      }
+      const point = svg.createSVGPoint();
+      point.x = e.clientX;
+      point.y = e.clientY;
+      const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+
+      const shownImage = new Image();
+      shownImage.src = `data:image/png;base64,${this.shownImage}`;
+      await shownImage.decode();
+
+      const svgInternalWidth = svg.viewBox.baseVal.width || svg.clientWidth;
+      const svgInternalHeight = svg.viewBox.baseVal.height || svg.clientHeight;
+
+      const scaleX =  shownImage.width / svgInternalWidth;
+      const scaleY = shownImage.height / svgInternalHeight;
+
+      const imgX = Math.floor(svgPoint.x * scaleX);
+      const imgY = Math.floor(svgPoint.y * scaleY);
+
+      this.touchUpCanvas.width = shownImage.width;
+      this.touchUpCanvas.height = shownImage.height;
+      this.touchUpCtx.drawImage(shownImage, 0, 0);
+
+      const shownPixels = this.touchUpCtx.getImageData(0, 0, this.touchUpCanvas.width, this.touchUpCanvas.height).data;
+
+      const startX = Math.max(0, Math.floor(imgX - this.touchUpRadius));
+      const endX = Math.min(this.touchUpCanvas.width, Math.ceil(imgX + this.touchUpRadius));
+      const startY = Math.max(0, Math.floor(imgY - this.touchUpRadius));
+      const endY = Math.min(this.touchUpCanvas.height, Math.ceil(imgY + this.touchUpRadius));
+
+      for (let y = startY; y < endY; y++) {
+        for (let x = startX; x < endX; x++) {
+          const dx = Math.pow((x - imgX), 2);
+          const dy = Math.pow((y - imgY), 2);
+          if (dx + dy <= this.touchUpRadius * this.touchUpRadius) {
+            const pixelIndex = ((y* this.touchUpCanvas.width) + x) * 4;
+            if (shownPixels[pixelIndex + 3] > 0) {
+              shownPixels[pixelIndex + 3] = 0;
+            }
+          }
+        }
+      }
+
+      this.touchUpCtx.putImageData(shownData, 0, 0);
+      this.shownImage = this.touchUpCanvas.toDataURL('image/png').split(',')[1];
+    },
+    handleTouchUp(e) {
+      const svg = e.currentTarget;
+      const point = svg.createSVGPoint();
+      point.x = e.clientX;
+      point.y = e.clientY;
+      const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+
+      const imgX = Math.floor((svgPoint.x));
+      const imgY = Math.floor((svgPoint.y));
+
+      if (imgX < 0 || imgY < 0 ) {
+        return;
+      }
+
+      this.highlightX = imgX;
+      this.highlightY = imgY;
+    },
+    hideTouchUp() {
+      this.touchingUp = false;
+      this.contextId = null;
+    },
+    showTouchUp() {
+      this.touchingUp = true;
+      this.contextId = null;
     }
   },
   watch: {
@@ -238,9 +353,13 @@ export default {
       async handler(newImage) {
         if (newImage) {
           try {
+            this.touchUpCanvas = document.createElement('canvas');
+            this.touchUpCtx = this.touchUpCanvas.getContext('2d');
+
             this.shownImage = this.baseImage;
             const image = new Image();
             image.src = `data:image/png;base64,${this.baseImage}`;
+
             for (const layer of this.masks) {
               const img = new Image();
               img.src = `data:image/png;base64,${await this.convertMaskTransparant(layer)}`;
@@ -251,6 +370,7 @@ export default {
               canvas.width = img.width
               canvas.height = img.height
               ctx.drawImage(img, 0, 0)
+
               this.layers.push({
                 img,
                 width: img.width,
@@ -270,6 +390,6 @@ export default {
         }
       }
     }
-  }
+  }  
 };
 </script>

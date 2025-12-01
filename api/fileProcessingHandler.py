@@ -23,7 +23,7 @@ class FileProcessor():
         self.file_q = queue.Queue()
         self.device = self.__get_device_for_SAM()
 
-#        self.device="cpu" 
+        self.device="cpu" 
         logging.basicConfig(filename='fileprocessor.log', level=logging.INFO)
         os.makedirs(processed_directory, exist_ok=True)
         load_dotenv() 

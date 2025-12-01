@@ -25,6 +25,8 @@ All you need to to do run it next is use ```docker compose up```. Because of SAM
 
 2. This will open the **Edit File** view where you can perform detailed object segmentation and modification.
 
+3. The touchup tool, available through the context menu allows for additional manual removal. through a brush like UI, left click and hold to remove pixels from the image and is adjustable through a scale under the image. To exit this right click and normal editing will resume.
+
 ### Editing Actions (Right-Click Menu)
 
 In the editor, right click on any segmented object to:
