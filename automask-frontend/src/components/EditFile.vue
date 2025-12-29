@@ -8,7 +8,7 @@
         :width="1200"
         :height="1200"
         viewBox="0 0 1200 1200"
-        @mousemove="highlight" 
+        @mousemove="highlight"
         @mouseleave="this.hoveredMask = null; this.editingPixels = false"
         @mousedown.left="this.editingPixels = true"
         @mouseup.left="this.editingPixels = false"
@@ -52,7 +52,7 @@
         @save="save"
         @start="showTouchUp"
         @end="hideTouchUp"
-        :style="{ top: contextY + 'px', left: contextX + 'px' }"    
+        :style="{ top: contextY + 'px', left: contextX + 'px' }"
         ></ContextMenu>
         <br></br>
         <div v-if="touchingUp">
@@ -68,7 +68,7 @@
         </div>
     </div>
     <div v-else>
-      <loading></loading>      
+      <loading></loading>
     </div>
   </div>
 </template>
@@ -205,7 +205,8 @@ export default {
 
       ctx.drawImage(shownImage, 0, 0);
 
-      const shownPixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const shownImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const shownPixels = shownImageData.data;
 
       const maskCanvas = document.createElement('canvas');
       const maskCtx = maskCanvas.getContext('2d');
@@ -225,7 +226,7 @@ export default {
         }
       }
 
-      ctx.putImageData(shownData, 0, 0);
+      ctx.putImageData(shownImageData, 0, 0);
       this.shownImage = canvas.toDataURL('image/png').split(',')[1];
       this.contextId = null;
     },
@@ -246,7 +247,8 @@ export default {
 
       ctx.drawImage(shownImage, 0, 0);
 
-      const shownPixels =ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const shownImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const shownPixels = shownImageData.data;
 
       const maskCanvas = document.createElement('canvas');
       const maskCtx = maskCanvas.getContext('2d');
@@ -264,7 +266,7 @@ export default {
         }
       }
 
-      ctx.putImageData(shownData, 0, 0);
+      ctx.putImageData(shownImageData, 0, 0);
       this.shownImage = canvas.toDataURL('image/png').split(',')[1];
       this.contextId = null;
     },
@@ -298,7 +300,8 @@ export default {
       this.touchUpCanvas.height = shownImage.height;
       this.touchUpCtx.drawImage(shownImage, 0, 0);
 
-      const shownPixels = this.touchUpCtx.getImageData(0, 0, this.touchUpCanvas.width, this.touchUpCanvas.height).data;
+      const shownData = this.touchUpCtx.getImageData(0, 0, this.touchUpCanvas.width, this.touchUpCanvas.height);
+      const shownPixels = shownData.data;
 
       const startX = Math.max(0, Math.floor(imgX - this.touchUpRadius));
       const endX = Math.min(this.touchUpCanvas.width, Math.ceil(imgX + this.touchUpRadius));
@@ -317,6 +320,10 @@ export default {
           }
         }
       }
+
+      console.log(shownData instanceof ImageData);
+      console.log(shownData.constructor.name);
+
 
       this.touchUpCtx.putImageData(shownData, 0, 0);
       this.shownImage = this.touchUpCanvas.toDataURL('image/png').split(',')[1];
@@ -390,6 +397,6 @@ export default {
         }
       }
     }
-  }  
+  }
 };
 </script>

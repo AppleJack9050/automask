@@ -11,7 +11,7 @@
         :key="status"
         class="card"
       >
-        <div 
+        <div
           class="card-header d-flex justify-content-between align-items-center"
         >
           <h5 class="mb-0">{{ status }}</h5>
@@ -68,6 +68,7 @@
     <div v-else>
       <loading></loading>
     </div>
+    <prompt-modal :id="_prompt_modal"></promt-modal>
   </div>
 </template>
 
@@ -75,14 +76,19 @@
 import Loading from "@/components/Loading.vue";
 import fileService from "@/services/fileservice"
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import PromptModal from "@/components/PromptModal.vue";
 
 export default {
   components:{
-    Loading
+    Loading,
+    PromptModal
   },
   data() {
     return {
-      files: []
+      files: [],
+      prompt: '',
+      showModal: false,
+      positive: None
     }
   },
   computed: {
@@ -113,7 +119,7 @@ export default {
           title:'Error',
           text:error,
           type:'error'
-        }) 
+        })
       }
     },
     editFile(file) {
@@ -121,7 +127,7 @@ export default {
     },
     async processFiles() {
       try {
-        await fileService.processFiles();
+        await fileService.processFiles(this.files, this.prompt, this.positive);
         this.$notify({
           title:'Success',
           text:'Files Processed Successfully',
@@ -146,7 +152,22 @@ export default {
           type:'error'
         });
       }
+    },
+    openPromptModal() {
+      const el = document.getElementById('_prompt_modal');
+      const modal = Modal.getOrCreateInstance(el);
+      modal.show();
+    },
+    closeModal(prompt, promptType) {
+      const el = document.getElementById('_prompt_modal');
+      const modal = Modal.getOrCreateInstance(el);
+
+      this.prompt = prompt;
+      this.positive = promptType;
+      modal.hide()
+
     }
+
   },
   created() {
     this.loadFiles();

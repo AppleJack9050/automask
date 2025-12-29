@@ -74,9 +74,9 @@ async def show_editor(file_name: str):
     return {"masks": image_masks, "image": base_image}
 
 @app.get("/process-files")
-async def process_files():
+async def process_files(files: List[str], prompt:str, positive:bool):
     try:
-        file_processor.create_process_queue()
+        file_processor.create_process_queue(files)
         await asyncio.to_thread(file_processor.process_files_in_queue)
         return {"message":"success"}
     except Exception as e:

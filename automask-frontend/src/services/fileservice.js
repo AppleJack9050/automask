@@ -22,7 +22,7 @@ async function putFiles(files) {
     for (const file of files) {
       formData.append("files", file);
     }
-  
+
     return await apiClient.post("/files", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -35,10 +35,17 @@ async function showEditor(fileName) {
       basicHeaders
     )
 }
-async function processFiles() {
-  return await apiClient.get(
+async function processFiles(files, prompt, positive) {
+  return await apiClient.post(
     '/process-files/',
-    basicHeaders
+    {
+      headers: basicHeaders
+    },
+    {
+      files: files,
+      prompt: prompt,
+      positive: positive
+    };
   )
 }
 async function saveImage(file, fileName, fileType) {

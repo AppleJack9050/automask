@@ -9,8 +9,13 @@ import torch
 from datetime import datetime
 import logging
 from PIL import Image
+
 from sam2.build_sam import build_sam2
 from sam2.automatic_mask_generator import SAM2AutomaticMaskGenerator
+import sam3
+from sam3 import build_sam3_image_model
+from sam3.model.sam3_image_processor import Sam3Processor
+
 from dotenv import load_dotenv
 import gc
 
@@ -23,12 +28,13 @@ class FileProcessor():
         self.file_q = queue.Queue()
         self.device = self.__get_device_for_SAM()
 
-        self.device="cpu" 
+#        self.device="cpu"
         logging.basicConfig(filename='fileprocessor.log', level=logging.INFO)
         os.makedirs(processed_directory, exist_ok=True)
         load_dotenv() 
 
         self.sam2_model = self.__build_sam2()
+        self.sam3_model = self.__build_sam3()
 
     def __get_device_for_SAM(self):
         device = ""
@@ -44,11 +50,11 @@ class FileProcessor():
         path_to_check = os.path.join(self.processed_directory, file)
         return not os.path.exists(path_to_check)
 
-    def create_process_queue(self):
+    def create_process_queue(self, files):
         files = os.listdir(self.target_directory)
         unprocessed_files = filter(self.file_processed, files)
         for file in unprocessed_files:
-            if file.endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff')):
+            if file.endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp')) and file in files:
                 self.file_q.put(file)
 
     def process_files_in_queue(self):
@@ -102,3 +108,12 @@ class FileProcessor():
         sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=self.device, apply_postprocessing=False)
         os.chdir(cwd)
         return sam2_model
+
+    def __build_sam3(self):
+        model = build_sam3_image_model(bpe_path=f"{SAM3_FULL_PATH}/assets/bpe_simple_vocab_16e6.txt.gz")
+        return Sam3Processor(model, confidence_threshold=0.5)
+
+
+    def __generate_sam3_masking(self, prompt, image):
+        """Uses SAM3 to use the text prompt and returns the result"""
+        pass

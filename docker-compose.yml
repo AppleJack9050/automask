@@ -1,6 +1,7 @@
 services:
   automask-api:
     container_name: api
+    user: "${UID}:${GID}"
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -8,6 +9,7 @@ services:
       - SAM2_FULL_PATH=/api/sam2
       - SAM2_CHECKPOINT=checkpoints/sam2.1_hiera_large.pt
       - SAM2_CONFIG=configs/sam2.1/sam2.1_hiera_l.yaml
+      - SAM3_FULL_PATH=/api/sam3
     volumes:
       - uploads:/api/uploads
       - processed:/api/processed
@@ -16,8 +18,9 @@ services:
       - "8000:80"
     networks:
       - app-network
-  
+
   automask-frontend:
+    container_name: frontend
     build:
       context: ./automask-frontend
       dockerfile: Dockerfile
