@@ -35,18 +35,19 @@ async function showEditor(fileName) {
       basicHeaders
     )
 }
-async function processFiles(files, prompt, positive) {
+async function processFiles(files, prompt, positive, highlight) {
   return await apiClient.post(
     '/process-files/',
     {
-      headers: basicHeaders
-    },
-    {
       files: files,
       prompt: prompt,
-      positive: positive
-    };
-  )
+      positive: positive,
+      highlight: highlight
+    },
+    {
+      headers: { "Content-Type": "application/json" }
+    }
+  );
 }
 async function saveImage(file, fileName, fileType) {
   try {
@@ -57,7 +58,7 @@ async function saveImage(file, fileName, fileType) {
         file_type: fileType,
       },
       {
-        headers: { "Content-Type": "application/json" },
+        headers: basicHeaders,
       }
     );
     return response;
@@ -71,10 +72,10 @@ async function saveImage(file, fileName, fileType) {
 }
 async function downloadImage(fileName) {
   try {
-    const response = await apiClient.post(
-      `/save-image/${fileName}`,
+    const response = await apiClient.get(
+      `/download/${fileName}`,
       {
-        headers: { "Content-Type": "application/json" },
+        headers: basicHeaders,
       }
     );
     return response;

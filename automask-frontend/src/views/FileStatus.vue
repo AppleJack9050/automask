@@ -30,6 +30,23 @@
           :id="'collapse-' + index + '-' + status"
           class="collapse show"
         >
+          <div
+            v-if="status === 'Unprocessed'"          
+          >
+            <button
+              class="btn btn-secondary"
+              @click="openPromptModal()"
+            >
+              Process All
+            </button>
+            <button
+              v-if="filesSelected"
+              class="btn btn-primary"
+              @click="openPromptModal()"
+            >
+              Process Selected
+            </button>
+          </div>
           <div class="card-body">
             <ul class="list-group list-group-flush">
               <li
@@ -48,17 +65,18 @@
                 <button
                   v-if="status === 'Saved'"
                   class="btn btn-sm btn-secondary"
-                  @click="saveFile(file)"
+                  @click="downloadFile(file)"
                 >
                   Download
                 </button>
-                <button
-                  v-if="status === 'Unprocessed'"
-                  class="btn btn-sm btn-secondary"
-                  @click="processFiles()"
-                >
-                  Process
-                </button>
+                <div  v-if="status === 'Unprocessed'">
+                  <input
+                    v-model="selectedFiles"
+                    type="checkbox"
+                    :value="file"
+                  >
+                  </input>
+                </div>
               </li>
             </ul>
           </div>
@@ -68,7 +86,9 @@
     <div v-else>
       <loading></loading>
     </div>
-    <prompt-modal :id="_prompt_modal"></promt-modal>
+    <prompt-modal
+      @process="this.processFiles"
+      ></prompt-modal>
   </div>
 </template>
 
@@ -77,6 +97,7 @@ import Loading from "@/components/Loading.vue";
 import fileService from "@/services/fileservice"
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import PromptModal from "@/components/PromptModal.vue";
+import { Modal } from 'bootstrap';
 
 export default {
   components:{
@@ -86,29 +107,31 @@ export default {
   data() {
     return {
       files: [],
-      prompt: '',
       showModal: false,
-      positive: None
+      selectedFiles: []
     }
   },
   computed: {
     filesLoaded() {
       return this.files.length !== 0;
+    },
+    filesSelected() {
+      return this.selectedFiles.length > 0;
     }
   },
   methods: {
-    async saveFile(fileName) {
+    async downloadFile(fileName) {
       try {
-        const file = await fileService.downloadImage(fileName);
+        const file = (await fileService.downloadImage(fileName)).data;
         const link = document.createElement("a");
-
         link.download = fileName;
 
-        link.href = file;
+        link.href = file.data;
 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
         this.$notify({
           title:'Success',
           text:'File Downlaoded Successfully',
@@ -117,7 +140,7 @@ export default {
       } catch (e) {
         this.$notify({
           title:'Error',
-          text:error,
+          text:e,
           type:'error'
         })
       }
@@ -125,9 +148,20 @@ export default {
     editFile(file) {
       this.$router.push({ name: 'Edit', params: { imageTitle: file } });
     },
-    async processFiles() {
+    async processFiles(prompt, positive, highlight) {
       try {
-        await fileService.processFiles(this.files, this.prompt, this.positive);
+        await fileService.processFiles(
+          this.selectedFiles.length === 0 ?
+            this.files
+              .filter(f => f.hasOwnProperty('Unprocessed'))
+              .map(f => f.Unprocessed)
+              .flat() :
+            this.selectedFiles,
+          prompt,
+          positive,
+          highlight
+        );
+        this.closeModal();
         this.$notify({
           title:'Success',
           text:'Files Processed Successfully',
@@ -154,25 +188,18 @@ export default {
       }
     },
     openPromptModal() {
-      const el = document.getElementById('_prompt_modal');
+      const el = document.getElementById('promptModal');
       const modal = Modal.getOrCreateInstance(el);
       modal.show();
     },
-    closeModal(prompt, promptType) {
-      const el = document.getElementById('_prompt_modal');
+    closeModal() {
+      const el = document.getElementById('promptModal');
       const modal = Modal.getOrCreateInstance(el);
-
-      this.prompt = prompt;
-      this.positive = promptType;
-      modal.hide()
-
+      modal.hide();
     }
-
   },
   created() {
     this.loadFiles();
   }
 }
-
-
 </script>

@@ -10,7 +10,6 @@ async function uploadFiles() {
   try {
     const result = await fileService.putFiles(filesStore.getFiles);
     notify({
-      text: result, 
       title: 'Success',
       text:'Uploaded Successfully'
     })

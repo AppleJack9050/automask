@@ -7,7 +7,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-class Filehandler:
+class FileHandler:
     def __init__(self, directory, processed_directory):
         self.directory = directory
         self.processed_directory = processed_directory
@@ -82,7 +82,7 @@ class Filehandler:
 
         return saved_files
 
-    def return_base_image(self, path, image_title):
+    def fetch_image(self, path, image_title):
         max_size = (1200, 1200)
         for root, _, files in os.walk(path):
             for file in files:
@@ -123,7 +123,9 @@ class Filehandler:
     def download(self, file_path):
         _, file_type = os.path.splitext(file_path)
         image = Image.open(file_path)
-        image.thumbnail((image.size, image.width))
+        image.thumbnail((image.size))
         buffered = BytesIO()
-        image.save(buffered, format=file_type)
+        
+        image.save(buffered, format=(image.format or "PNG"))
+        
         return f'data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode("utf-8")}'

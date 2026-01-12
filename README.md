@@ -1,8 +1,9 @@
 # AutoMask Application Quick Start Guide
 
-First to start make sure that you have sam2 downloaded, and inside of the api subfolder as this is where docker pulls it from.
+All you need to do normally is to run  ```docker compose up```.
 
-All you need to to do run it next is use ```docker compose up```. Because of SAM2 this image is a big boy so it may take a little while to build
+How if you are looking to build the images from scratch you will have to make sure that you have [Grounded-SAM-2](https://github.com/IDEA-Research/Grounded-SAM-2/tree/main) downloaded, and inside of the api subfolder as this is where the image stores the model. You don't need to run any of the scripts to install it this is all handled in the Dockerfiles.
+
 ## Usage Guide
 
 ### Step 1: Upload Files

@@ -5,9 +5,9 @@
       v-if="!loading"
     >
       <svg
-        :width="1200"
-        :height="1200"
-        viewBox="0 0 1200 1200"
+        :width="this.imageWidth"
+        :height="this.imageHeight"
+        :viewBox="`0 0 ${this.imageWidth} ${this.imageHeight}`"
         @mousemove="highlight"
         @mouseleave="this.hoveredMask = null; this.editingPixels = false"
         @mousedown.left="this.editingPixels = true"
@@ -25,8 +25,8 @@
             :href="`data:image/png;base64,${mask.mask}`"
             :x="mask.x || 0"
             :y="mask.y || 0"
-            :width="mask.width || 1200"
-            :height="mask.height || 1200"
+            :width="mask.width"
+            :height="mask.height"
             :opacity="hoveredMask === index ? 0.5 : 0"
             class="mask"
             @contextmenu="handleRightClick($event, index)"
@@ -44,7 +44,7 @@
         </circle>
       </svg>
       <ContextMenu
-        v-if="contextId"
+        v-if="contextId !== null"
         :id="contextId"
         :usingTouchUp="touchingUp"
         @select="selectOnlyObject"
@@ -55,6 +55,13 @@
         :style="{ top: contextY + 'px', left: contextX + 'px' }"
         ></ContextMenu>
         <br></br>
+        <div>
+          <label for="slider" class="form-label">Toggle Original Image</label>
+          <input
+            type="checkbox"
+            v-model="showOriginalImage"
+          />
+        </div>
         <div v-if="touchingUp">
           <label for="slider" class="form-label">Select Brush Size: {{ touchUpRadius }} px</label>
           <input
@@ -86,6 +93,10 @@ export default {
       type:String,
       required:true
     },
+    editedImage:{
+      type:String,
+      required:false
+    },
     masks:{
       type: Array,
       default: () => []
@@ -107,7 +118,10 @@ export default {
       highlightY: null,
       editingPixels: false,
       touchUpCtx: null,
-      touchUpCanvas: null
+      touchUpCanvas: null,
+      imageHeight: null,
+      imageWidth: null,
+      showOriginalImage: false
     }
   },
   computed: {
@@ -133,13 +147,11 @@ export default {
         return;
       }
 
-      const w = parseFloat(masks[0].getAttribute('width'));
-      const h = parseFloat(masks[0].getAttribute('height'));
       const x = parseFloat(masks[0].getAttribute('x'));
       const y = parseFloat(masks[0].getAttribute('y'));
 
-      const imgX = Math.floor((svgPoint.x - x) * (this.layers[0].width / w));
-      const imgY = Math.floor((svgPoint.y - y) * (this.layers[0].height / h));
+      const imgX = Math.floor((svgPoint.x - x) * (this.layers[0].width / this.imageWidth));
+      const imgY = Math.floor((svgPoint.y - y) * (this.layers[0].height / this.imageHeight));
 
       if (imgX < 0 || imgY < 0 || imgX >= masks[0].width || imgY >= masks[0].height) {
         this.hoveredMask = null
@@ -172,7 +184,10 @@ export default {
 
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
-        if (r > 128) {
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        if (r > 0 || g > 0 || b > 0) {
           data[i + 3] = 255;
         } else {
           data[i + 3] = 0;
@@ -210,18 +225,17 @@ export default {
 
       const maskCanvas = document.createElement('canvas');
       const maskCtx = maskCanvas.getContext('2d');
-      maskCanvas.width = maskImg.width;
-      maskCanvas.height = maskImg.height;
-      maskCtx.drawImage(maskImg, 0, 0);
+      maskCanvas.width = canvas.width;
+      maskCanvas.height = canvas.height;
+      maskCtx.imageSmoothingEnabled = false;
+      maskCtx.drawImage(maskImg, 0, 0, maskCanvas.width, maskCanvas.height);
       const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data;
 
       for (let i = 0; i < maskData.length; i += 4) {
         const r = maskData[i];
         const g = maskData[i + 1];
         const b = maskData[i + 2];
-        const alpha = maskData[i + 3];
-
-        if (r > 1 && g > 1 && b > 1 && alpha > 0) {
+        if (r > 0 && g > 0 && b > 0) {
           shownPixels[i + 3] = 0;
         }
       }
@@ -252,9 +266,10 @@ export default {
 
       const maskCanvas = document.createElement('canvas');
       const maskCtx = maskCanvas.getContext('2d');
-      maskCanvas.width = maskImg.width;
-      maskCanvas.height = maskImg.height;
-      maskCtx.drawImage(maskImg, 0, 0);
+      maskCanvas.width = canvas.width;
+      maskCanvas.height = canvas.height;
+
+      maskCtx.drawImage(maskImg, 0, 0, maskCanvas.width, maskCanvas.height);
       const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data;
 
       for (let i = 0; i < maskData.length; i += 4) {
@@ -321,10 +336,6 @@ export default {
         }
       }
 
-      console.log(shownData instanceof ImageData);
-      console.log(shownData.constructor.name);
-
-
       this.touchUpCtx.putImageData(shownData, 0, 0);
       this.shownImage = this.touchUpCanvas.toDataURL('image/png').split(',')[1];
     },
@@ -363,7 +374,7 @@ export default {
             this.touchUpCanvas = document.createElement('canvas');
             this.touchUpCtx = this.touchUpCanvas.getContext('2d');
 
-            this.shownImage = this.baseImage;
+            this.shownImage = this.editedImage != null ? this.editedImage : this.baseImage;
             const image = new Image();
             image.src = `data:image/png;base64,${this.baseImage}`;
 
@@ -371,7 +382,8 @@ export default {
               const img = new Image();
               img.src = `data:image/png;base64,${await this.convertMaskTransparant(layer)}`;
               await img.decode();
-
+              this.imageWidth = img.width;
+              this.imageHeight = img.height;
               const canvas = document.createElement('canvas')
               const ctx = canvas.getContext('2d')
               canvas.width = img.width
@@ -396,7 +408,16 @@ export default {
           }
         }
       }
-    }
+    },
+    showOriginalImage: {
+      handler(showOriginal) {
+        if(showOriginal) {
+          this.shownImage = this.baseImage;
+        } else {
+          this.shownImage = this.editedImage;
+        }
+      }
+    } 
   }
 };
 </script>

@@ -3,6 +3,7 @@
     <edit-file
       v-show="imageTitle"
       :baseImage="baseImage"
+      :editedImage="editedImage"
       :masks="masks"
       @saveImage="openSaveModal"
     />
@@ -35,6 +36,7 @@ export default {
   data() {
     return {
       baseImage: null,
+      editedImage: null,
       masks: [],
       imageToSave: null,
       showModal: false
@@ -64,7 +66,8 @@ export default {
           if (assets.data.masks.length > 0) {
             clearInterval(interval);
             clearTimeout(timeout);
-            this.baseImage = assets.data.image;
+            this.baseImage = assets.data.base_image;
+            this.editedImage = assets.data.edited_image;
             this.masks = assets.data.masks;
           }
         }, 5000);

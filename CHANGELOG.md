@@ -7,6 +7,7 @@
 - [feature] dockerised
 - [feature] add notifications
 - [feature] add touch up tool
+- [feature] prompting
 
 ### future fixes
 - allow file with spaces

@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="modal fade"
-    id="saveModal"
-  >
+  <div class="modal fade" id="saveModal">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -15,7 +12,6 @@
           >
           </button>
         </div>
-
         <div class="mb-3">
           <form>
             <label class="form-label">Select File Type</label>
