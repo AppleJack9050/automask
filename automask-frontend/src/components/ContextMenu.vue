@@ -13,8 +13,8 @@
       <li>
         <a class="dropdown-item" @click="startTouchUp">Use Touch Up Tool</a>
       </li>
-      <li v-if="usingTouchUp">
-        <a class="dropdown-item" @click="endTouchUp">Close Touch Up Tool</a>        
+      <li>
+        <a class="dropdown-item" @click="cancel">Cancel</a>
       </li>
     </ul>
   </div>
@@ -42,8 +42,8 @@ export default {
     startTouchUp() {
       this.$emit('start');
     },
-    endTouchUp() {
-      this.$emit('end');
+    cancel() {
+      this.$emit('cancel');
     }
   }
 }

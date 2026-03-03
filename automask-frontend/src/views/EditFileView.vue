@@ -5,6 +5,7 @@
       :baseImage="baseImage"
       :editedImage="editedImage"
       :masks="masks"
+      :fileName="imageTitle"
       @saveImage="openSaveModal"
     />
     <save-modal

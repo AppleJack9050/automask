@@ -167,7 +167,7 @@ export default {
           text:'Files Processed Successfully',
           type:'success'
         });
-      } catch (e) {
+      } catch (error) {
         this.$notify({
           title:'Error',
           text:error,

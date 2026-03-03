@@ -8,7 +8,7 @@ const { notify } = useNotification()
 
 async function uploadFiles() {
   try {
-    const result = await fileService.putFiles(filesStore.getFiles);
+    await fileService.putFiles(filesStore.getFiles);
     notify({
       title: 'Success',
       text:'Uploaded Successfully'

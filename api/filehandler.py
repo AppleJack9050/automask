@@ -83,12 +83,10 @@ class FileHandler:
         return saved_files
 
     def fetch_image(self, path, image_title):
-        max_size = (1200, 1200)
         for root, _, files in os.walk(path):
             for file in files:
                 if image_title in file:
                     image = Image.open(os.path.join(root, file))
-                    image.thumbnail(max_size)
                     buffered = BytesIO()
                     image.save(buffered, format="PNG")
                     return  base64.b64encode(buffered.getvalue()).decode("utf-8")

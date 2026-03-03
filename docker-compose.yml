@@ -2,10 +2,10 @@ services:
   automask-api:
     container_name: api
     user: "${UID}:${GID}"
-#    build:
-#      context: ./api
-#      dockerfile: Dockerfile
-    image: mbyrne01/automask:automask-automask-api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+#    image: mbyrne01/automask:automask-automask-api
     environment:
       - SAM2_FULL_PATH=/api/Grounded-SAM-2/sam2
       - SAM2_CHECKPOINT=checkpoints/sam2.1_hiera_large.pt
@@ -24,10 +24,10 @@ services:
 
   automask-frontend:
     container_name: frontend
-#    build:
-#      context: ./automask-frontend
-#      dockerfile: Dockerfile
-    image: mbyrne01/automask:automask-automask-frontend
+    build:
+      context: ./automask-frontend
+      dockerfile: Dockerfile
+#    image: mbyrne01/automask:automask-automask-frontend
     ports:
       - "8080:80"
     networks:

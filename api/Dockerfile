@@ -1,10 +1,9 @@
-FROM ubuntu:22.04
+FROM python:3.10-slim
 
 WORKDIR /api
 COPY . /api
 
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
     build-essential \
     gcc g++ \
     cmake \
@@ -20,7 +19,7 @@ RUN groupadd -r apiuser && useradd -r -g apiuser apiuser
 
 
 RUN mkdir /api/Grounded-SAM-2/sam2/checkpoints
-RUN cd /api/Grounded-SAM-2/sam2/checkpoints && bash /api//Grounded-SAM-2/checkpoints/download_ckpts.sh
+RUN cd /api/Grounded-SAM-2/sam2/checkpoints && bash /api/Grounded-SAM-2/checkpoints/download_ckpts.sh
 RUN cd /api/Grounded-SAM-2 && python3 -m pip install -e .
 
 # SET UP Grounding DINO
