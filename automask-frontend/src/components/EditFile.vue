@@ -10,6 +10,7 @@
         @undo="handleUndo"
         @redo="handleRedo"
         @update-touch-up-radius="updateTouchUpRadius"
+        @transparentRemoval="toggleTransparent"
       ></edit-toolbar>
       <svg
         :width="this.imageWidth"
@@ -142,7 +143,8 @@ export default {
       ctm: null,
       shownData: null,
       shownImageData: null,
-      showCanvas: false
+      showCanvas: false,
+      transparentBackground: true
     }
   },
   computed: {
@@ -282,6 +284,11 @@ export default {
             shownPixels[i + 2] = this.basePixels[i + 2];
             shownPixels[i + 3] = 255;
           } else {
+            // here just follow the  undo logic but kind of just in reverse.
+            this.transparentBackground ? 
+              this.turnPixelsTransparent(shownPixels, i) :
+              this.turnPixelsBlack(shownPixels, i);
+
             shownPixels[i + 3] = 0;
           }
         }
@@ -338,7 +345,12 @@ export default {
             shownPixels[i + 2] = this.basePixels[i + 2];
             shownPixels[i + 3] = 255;
           } else {
-            shownPixels[i + 3] = 0;
+            // here just follow the  undo logic but kind of just in reverse.
+            this.transparentBackground ? 
+              this.turnPixelsTransparent(shownPixels, i) :
+              this.turnPixelsBlack(shownPixels, i);
+
+              shownPixels[i + 3] = 0;
           }
         }
       }
@@ -531,6 +543,9 @@ export default {
           break;
       };
       this.updateAfterRedo(this.fileName)
+    },
+    toggleTransparent(newValue) {
+      this.transparentBackground = newValue;
     }
   },
   watch: {

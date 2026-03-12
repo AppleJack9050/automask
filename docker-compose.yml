@@ -1,38 +1,85 @@
 services:
+  automask-image-processor:
+    user: "${UID}:${GID}"
+    container_name: image-processor
+    build:
+      context: ./image-processor
+      dockerfile: Dockerfile
+    environment:
+      - SAM2_FULL_PATH=/image-processor/Grounded-SAM-2/sam2
+      - SAM2_CHECKPOINT=checkpoints/sam2.1_hiera_large.pt
+      - SAM2_CONFIG=configs/sam2.1/sam2.1_hiera_l.yaml
+      - SAM3_FULL_PATH=/image-processor/sam3
+      - GROUNDING_DINO_CHECKPOINT=/image-processor/Grounded-SAM-2/gdino_checkpoints/groundingdino_swint_ogc.pth
+      - GROUNDING_DINO_CONFIG=/image-processor/Grounded-SAM-2/grounding_dino/groundingdino/config/GroundingDINO_SwinT_OGC.py
+      - RABBITMQ_HOST=rabbitmq
+      - USER_DB=/data/user.db
+      - IMAGE_DB=/data/query.db
+      - SAVED_DIR=/saved
+      - UPLOAD_DIR=/uploads
+      - PROCESSED_DIR=/processed
+    volumes:
+      - uploads:/uploads
+      - processed:/processed
+      - saved:/saved
+    depends_on:
+      automask-api:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
   automask-api:
     container_name: api
-    user: "${UID}:${GID}"
     build:
       context: ./api
       dockerfile: Dockerfile
-#    image: mbyrne01/automask:automask-automask-api
     environment:
-      - SAM2_FULL_PATH=/api/Grounded-SAM-2/sam2
-      - SAM2_CHECKPOINT=checkpoints/sam2.1_hiera_large.pt
-      - SAM2_CONFIG=configs/sam2.1/sam2.1_hiera_l.yaml
-      - SAM3_FULL_PATH=/api/sam3
-      - GROUNDING_DINO_CHECKPOINT=/api/Grounded-SAM-2/gdino_checkpoints/groundingdino_swint_ogc.pth
-      - GROUNDING_DINO_CONFIG=/api/Grounded-SAM-2/grounding_dino/groundingdino/config/GroundingDINO_SwinT_OGC.py
+      - RABBITMQ_HOST=rabbitmq
+      - USER_DB=/data/user.db
+      - IMAGE_DB=/data/query.db
+      - SAVED_DIR=/saved
+      - UPLOAD_DIR=/uploads
+      - PROCESSED_DIR=/processed
     volumes:
-      - uploads:/api/uploads
-      - processed:/api/processed
-      - saved:/api/saved
+      - uploads:/uploads
+      - processed:/processed
+      - saved:/saved
     ports:
       - "8000:80"
     networks:
       - app-network
-
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:80/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
   automask-frontend:
     container_name: frontend
     build:
       context: ./automask-frontend
       dockerfile: Dockerfile
-#    image: mbyrne01/automask:automask-automask-frontend
     ports:
       - "8080:80"
     networks:
       - app-network
-  ### TODO: impliment healthchecks later 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
 
 networks:
   app-network:

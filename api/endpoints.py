@@ -3,10 +3,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from typing import List
 import os
 from filehandler import FileHandler
+from producer import Producer
 from fastapi.middleware.cors import CORSMiddleware
-from fileProcessingHandler import FileProcessor
 from pathlib import Path
-import asyncio
+from fastapi.security import OAuth2PasswordBearer
 
 app = FastAPI()
 app.add_middleware(
@@ -17,27 +17,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-### COMMENT OUT WHEN NOT USING A MAC
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-
-file_directory = "./uploads"
-processed_file_directory = "./processed"
-saved_file_directory = "./saved"
-file_handler = FileHandler(file_directory, processed_file_directory)
-file_processor = FileProcessor(file_directory, processed_file_directory)
-
-os.makedirs(file_directory, exist_ok=True)
+uploaded_file_directory = os.getenv("UPLOAD_DIR")
+processed_file_directory = os.getenv("PROCESSED_DIR")
+saved_file_directory = os.getenv("SAVED_DIR")
+file_handler = FileHandler(uploaded_file_directory, processed_file_directory)
+producer = Producer()
 
 @app.get("/files")
 async def get_files():
-    unprocessed_files = os.listdir(file_directory)
+    unprocessed_files = os.listdir(uploaded_file_directory)
     processed_files = os.listdir(processed_file_directory)
     saved_files = os.listdir(saved_file_directory)
-    files_being_processed = []
-    with file_processor.file_q.mutex:
-        queue = list(file_processor.file_q.queue)
-
-        files_being_processed = queue
+    files_being_processed = producer.check_queue()
 
     for file in files_being_processed:
         if file in unprocessed_files:
@@ -52,7 +43,7 @@ async def get_files():
 
 @app.get("/files/{file_name}")
 async def get_file(file_name: str):
-    file_path = os.path.join(file_directory, file_name)
+    file_path = os.path.join(uploaded_file_directory, file_name)
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return JSONResponse({"error": "File not found"}, status_code=404)
@@ -88,8 +79,8 @@ async def process_files(request: Request):
         positive = body.get('positive')
         highlight = body.get('highlight')
 
-        file_processor.create_process_queue(files)
-        await asyncio.to_thread(file_processor.process_files_in_queue(prompt, positive, highlight))
+        producer.create_file_queue(files, prompt, positive, highlight)
+
         return {"message":"success"}
     except Exception as e:
         JSONResponse({"error": "Processing Failed"}, status_code=500)
@@ -118,3 +109,17 @@ async def download_file(file_name: str):
 
     except:
         JSONResponse({"error": "Processing Failed"}, status_code=500)
+
+#@app.on_event("startup")
+#def startup_event():
+#    init_db()
+#    setup_rabbitmq_producer()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    if producer.channel:
+        producer.channel.close()
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

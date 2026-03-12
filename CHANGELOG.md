@@ -8,7 +8,10 @@
 - [feature] add notifications
 - [feature] add touch up tool
 - [feature] prompting
+- [feature] undo/redo
+- [upgrade] rabbitmq
 
 ### future fixes
 - allow file with spaces
 - refactor EditFile.vue
+- make edit tool reflect background

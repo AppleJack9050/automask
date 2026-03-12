@@ -1,0 +1,14 @@
+opencv-python
+torch
+torchvision
+transformers==4.26.1
+kornia
+torchaudio
+sam2
+python-dotenv
+fastapi
+uvicorn
+python-multipart
+supervision
+pika
+pydantic

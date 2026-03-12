@@ -23,6 +23,10 @@
       class="btn btn-sm btn-outline-secondary"
       @click="redo"
     >Redo</button>
+    <select v-model="transparent">
+      <option :value=true>Transparent</option>
+      <option :value=false>Black</option>
+    </select>
   </div>
 </template>
 
@@ -37,7 +41,8 @@ export default {
   data() {
     return {
       touchUpRadius: 10,
-      showOriginalImage: false
+      showOriginalImage: false,
+      transparent: true
     };
   },
   methods: {
@@ -56,6 +61,12 @@ export default {
       immediate:true,
       handler(newValue) {
         this.$emit('updateTouchUpRadius', newValue);
+      }
+    },
+    transparent: {
+      immediate: true,
+      handler(newValue) {
+        this.$emit('transparentRemoval', newValue);
       }
     }
   }

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import random
 import numpy as np
 import torch
-from kornia.utils import image_to_tensor, tensor_to_image
+from kornia.utils import image_to_tensor
 from PIL import Image
 
 class FileEditor:

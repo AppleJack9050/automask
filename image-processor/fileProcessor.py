@@ -35,7 +35,8 @@ class FileProcessor():
         self.file_editor = FileEditor(processed_directory, logger)
 #        self.device = self.__get_device_for_SAM()
 
-        self.device="cpu"
+#        os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+#        self.device="cpu"
 
         os.makedirs(processed_directory, exist_ok=True)
         load_dotenv() 
