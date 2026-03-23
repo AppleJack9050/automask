@@ -133,5 +133,5 @@ class FileEditor:
             )
 
         image = Image.fromarray(image)
-        image.save(Path(target_dir / 'edited' / image_name).with_suffix(".png"))
+        image.save(Path(target_dir / "edited" / image_name).with_suffix(".png"))
 

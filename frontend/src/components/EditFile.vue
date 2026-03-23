@@ -139,7 +139,6 @@ export default {
       touchUpCanvas: null,
       imageHeight: null,
       imageWidth: null,
-      showOriginalImage: false,
       basePixels: null,
       preTouchUpSnapshot: null,
       ctm: null,
@@ -426,15 +425,6 @@ export default {
           } finally {
             this.loading = false;
           }
-        }
-      }
-    },
-    showOriginalImage: {
-      handler(showOriginal) {
-        if(showOriginal) {
-          this.shownImage = this.baseImage;
-        } else {
-          this.shownImage = this.editedImage;
         }
       }
     },

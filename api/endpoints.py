@@ -19,27 +19,13 @@ app.add_middleware(
 
 uploaded_file_directory = os.getenv("UPLOAD_DIR")
 processed_file_directory = os.getenv("PROCESSED_DIR")
-saved_file_directory = os.getenv("SAVED_DIR")
+saved_file_directory =  os.getenv("SAVED_DIR")
 file_handler = FileHandler(uploaded_file_directory, processed_file_directory)
 producer = Producer()
 
 @app.get("/files")
 async def get_files():
-    unprocessed_files = os.listdir(uploaded_file_directory)
-    processed_files = os.listdir(processed_file_directory)
-    saved_files = os.listdir(saved_file_directory)
-    files_being_processed = producer.check_queue()
-
-    for file in files_being_processed:
-        if file in unprocessed_files:
-            unprocessed_files.remove(file)
-
-    return JSONResponse([
-        {"Unprocessed": unprocessed_files},
-        {"Processing": files_being_processed},
-        {"Processed": processed_files},
-        {"Saved": saved_files}
-    ])
+    return JSONResponse(file_handler.list_files(producer))
 
 @app.get("/files/{file_name}")
 async def get_file(file_name: str):
@@ -53,20 +39,27 @@ async def put_files(files: List[UploadFile] = File(...)):
     saved_files = await file_handler.handle_multiple_files(files)
     return {"uploaded": saved_files}
 
+# TODO
+@app.delete("files/{file_name}")
+async def delete_file(file_name: str):
+    pass
+
 @app.get("/show-file/{file_name}")
 async def show_editor(file_name: str):
-    file_path = os.path.join(processed_file_directory, Path(file_name).stem)
-    if not os.path.exists(file_path):
+    image_masks = []
+    base_image = ""
+    edited_image = ""
+    try:
+        base_image = file_handler.fetch_image(file_name)
+        image_masks = file_handler.return_image_masks(file_name)
+    except Exception as e:
         return JSONResponse({"error": "File not found"}, status_code=404)
 
-    base_image = file_handler.fetch_image(os.path.join(file_path, "original"), file_name)
-
     try:
-        edited_image = file_handler.fetch_image(os.path.join(file_path, "edited"), file_name)
+        edited_image = file_handler.fetch_image(file_name, True)
     except Exception as e:
+        print(e)
         pass
-
-    image_masks = file_handler.return_image_masks(file_path)
 
     return {"masks":image_masks, "base_image":base_image, "edited_image":edited_image}
 
@@ -79,7 +72,13 @@ async def process_files(request: Request):
         positive = body.get('positive')
         highlight = body.get('highlight')
 
-        producer.create_file_queue(files, prompt, positive, highlight)
+        stored_files = list(
+            map(
+                lambda file: file_handler.file_table.get_stored_name(file, "admin"),
+                files
+        ))
+
+        producer.create_file_queue(stored_files, prompt, positive, highlight)
 
         return {"message":"success"}
     except Exception as e:
@@ -99,16 +98,12 @@ async def save_edited_file(file_name: str, request: Request):
 @app.get('/download/{file_name}')
 async def download_file(file_name: str):
     try:
-        file_path = os.path.join(saved_file_directory, file_name)
-        if not os.path.exists(file_path):
-            return JSONResponse({"error": "File not found"}, status_code=404)
-
         return JSONResponse({
-            "data": file_handler.download(file_path)
+            "data": file_handler.download(file_name)
         })
 
     except:
-        JSONResponse({"error": "Processing Failed"}, status_code=500)
+        JSONResponse({"error": "Download Failed"}, status_code=500)
 
 #@app.on_event("startup")
 #def startup_event():

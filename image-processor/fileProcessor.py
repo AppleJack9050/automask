@@ -18,7 +18,6 @@ from groundingdino.util.inference import load_model, load_image, predict, box_co
 #from sam3 import build_sam3_image_model
 #from sam3.model.sam3_image_processor import Sam3Processor
 
-from dotenv import load_dotenv
 import gc
 
 logger = logging.getLogger(__name__)
@@ -33,17 +32,12 @@ class FileProcessor():
         self.file_q = queue.Queue()
         logging.basicConfig(filename='fileprocessor.log', level=logging.INFO)
         self.file_editor = FileEditor(processed_directory, logger)
-#        self.device = self.__get_device_for_SAM()
-
-#        os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-#        self.device="cpu"
+        self.device = self.__get_device_for_SAM()
 
         os.makedirs(processed_directory, exist_ok=True)
-        load_dotenv() 
 
         self.sam2_model = self.__build_sam2()
         self.dino = self.__build_dino()
-
 #        self.sam3_model = self.__build_sam3()
 
     def __get_device_for_SAM(self) -> str:
@@ -61,22 +55,23 @@ class FileProcessor():
         return not os.path.exists(path_to_check)
 
     def create_process_queue(self, files):
-        unprocessed_files = filter(self.file_processed, files)
+        unprocessed_files = list(filter(self.file_processed, files))
         for file in unprocessed_files:
             if file.endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp')) and file in files:
                 self.file_q.put(file)
 
     def process_files_in_queue(self, prompt, positive, highlight):
-        logger.info(f'Started Processing {datetime.now()}')
+        print(f'Started Processing {datetime.now()}')
+
         while not self.file_q.empty():
             self.__process_file(self.file_q.get(), prompt, positive, highlight)
             self.file_q.task_done()
+        print(f'Finished Processing {datetime.now()}')
 
     def __process_file(self, file, prompt, positive, highlight):
         logger.info(f'Processing {file}')
         processed_dir = Path(self.processed_directory)
         self.target_processed_folder = processed_dir / Path(file).stem
-
         self.target_processed_folder.mkdir(parents=True, exist_ok=True)
         mask_dir = self.target_processed_folder / "masks"
         mask_dir = mask_dir.resolve()

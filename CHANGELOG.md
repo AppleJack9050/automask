@@ -10,8 +10,8 @@
 - [feature] prompting
 - [feature] undo/redo
 - [upgrade] rabbitmq
+- [upgrade] file system upgrade
 
 ### future fixes
-- allow file with spaces
-- refactor EditFile.vue
-- make edit tool reflect background
+- delete files
+- reset option for editing

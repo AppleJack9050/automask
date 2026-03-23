@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y curl
 RUN groupadd -r apiuser && useradd -r -g apiuser apiuser
 
 RUN python3 -m pip install -r requirements.txt
-
-RUN chown -R apiuser:apiuser .
+RUN mkdir -p /database /uploads /processed /saved
+RUN chown -R apiuser:apiuser  . /database /uploads /processed /saved
 USER apiuser
 
 EXPOSE 80/tcp

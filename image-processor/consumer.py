@@ -10,6 +10,8 @@ QUEUE = "image_queue"
 class Consumer():
     def __init__(self):
         self.channel = None
+        self.connection = None
+        self.file_processor = FileProcessor(os.getenv("UPLOAD_DIR"), os.getenv("PROCESSED_DIR"))
         self.setup_consumer()
 
     def setup_consumer(self):
@@ -17,8 +19,9 @@ class Consumer():
         connection_params = pika.ConnectionParameters(
             host=host
         )
-        connection = pika.BlockingConnection(connection_params)
-        self.channel = connection.channel()
+        self.connection = pika.BlockingConnection(connection_params)
+        self.channel = self.connection.channel()
+
         self.channel.queue_declare(queue=QUEUE, durable=True) 
 
         self.channel.basic_consume(
@@ -26,22 +29,31 @@ class Consumer():
             on_message_callback=self.process,
             auto_ack=False
         )
-
+        print("Image Processor Ready")
         self.channel.start_consuming()
 
     def process(self, ch, method, _, body):
-        data = json.loads(body.decode('utf-8'))
-        file_processor = FileProcessor(os.getenv("UPLOAD_DIR"), os.getenv("PROCESSED_DIR"))
-        file_processor.create_process_queue(data["files"])
-        file_processor.process_files_in_queue(
-            data["prompt"],
-            data["positive"],
-            data["highlight"],
-        )
+        try:
+            data = json.loads(body.decode('utf-8'))
+            self.file_processor.create_process_queue(data["files"])
+            self.file_processor.process_files_in_queue(
+                data["prompt"],
+                data["positive"],
+                data["highlight"],
+            )
 
-        self.channel.basic_ack(delivery_tag=method.delivery_tag)
-        return
+            self.channel.basic_ack(delivery_tag=method.delivery_tag)
+            return
+        except Exception as e:
+            print(f"Error processing message: {e}")
+            self.channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 if __name__ == "__main__":
-    print("Starting worker...")
-    consumer = Consumer()
+    import time
+    while True:
+        try:
+            print("Starting Image Processor...")
+            consumer = Consumer()
+        except pika.exceptions.AMQPConnectionError as e:
+            print(f"Connection failed: {e}, retrying in 5s...")
+            time.sleep(5)
