@@ -11,7 +11,10 @@
 - [feature] undo/redo
 - [upgrade] rabbitmq
 - [upgrade] file system upgrade
+- [feature] add users
+- [feature] per user files
 
 ### future fixes
 - delete files
 - reset option for editing
+- tooltips

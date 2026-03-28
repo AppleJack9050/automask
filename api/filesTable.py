@@ -1,6 +1,7 @@
 from uuid import uuid4
 import sqlite3
 import os
+import re
 
 FILES_DB = os.getenv('FILES_DB')
 
@@ -56,7 +57,6 @@ class FilesTable:
                 """,
                 (user, file_name)).fetchone()
             c.commit()
-
         if not q:
             return ""
         return q[0]
@@ -75,7 +75,6 @@ class FilesTable:
         if not q:
             return None
         return q[0]
-        
 
     def delete_name(self, file_name, user):
         with sqlite3.connect(FILES_DB) as c:
@@ -89,14 +88,16 @@ class FilesTable:
             c.commit()
 
     def __count_file_duplicates(self, file_name, user_id) -> int:
+        name, _, ext = file_name.rpartition('.')
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    
                 """
-                    SELECT COUNT(*)
+                    SELECT file_name
                     FROM files
                     WHERE user_id = ? AND file_name LIKE ?
                 """,
-                (user_id, f"%{file_name}%")).fetchone()
+                (user_id, f"%{file_name}%")).fetchall()
             c.commit()
-    
-        return q[0]
+        stem = re.escape(name)
+        exact_pattern = re.compile(rf"^{stem}( \(\d+\))?.{re.escape(ext)}$")
+        return sum(1 for (fname,) in q if exact_pattern.match(fname))

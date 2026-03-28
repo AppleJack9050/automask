@@ -35,8 +35,9 @@ class Consumer():
     def process(self, ch, method, _, body):
         try:
             data = json.loads(body.decode('utf-8'))
-            self.file_processor.create_process_queue(data["files"])
+            self.file_processor.create_process_queue(data["user_id"], data["files"])
             self.file_processor.process_files_in_queue(
+                data["user_id"],
                 data["prompt"],
                 data["positive"],
                 data["highlight"],

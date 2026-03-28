@@ -16,7 +16,6 @@ class FileEditor:
 
     def edit_image(self, image_name, target_dir, positive_prompt, highlight):
         image = Image.open(Path(target_dir / "original" / image_name)).convert("RGB")
-
         if highlight:
             self.highlight_mask_edit(
                 target_dir=target_dir,

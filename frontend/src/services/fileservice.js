@@ -1,13 +1,13 @@
-import axios from 'axios'
-const apiClient = axios.create({
-    baseURL: 'http://localhost:8000'
-});
+import apiClient from './apiClient';
+
 const basicHeaders = {
-  headers: {"Content-Type": "application/json"}
-}
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`  
+}}
 async function getFiles() {
-    return await apiClient.get(
-      '/files',
+  return await apiClient.get(
+    '/files',
       basicHeaders
     );
 }
@@ -20,12 +20,13 @@ async function getFile(id) {
 async function putFiles(files) {
     const formData = new FormData();
     for (const file of files) {
-      formData.append("files", file);
+      formData.append('files', file);
     }
 
-    return await apiClient.post("/files", formData, {
+    return await apiClient.post('/files', formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       },
     });
 }
@@ -37,7 +38,7 @@ async function showEditor(fileName) {
 }
 async function processFiles(files, prompt, positive, highlight) {
   return await apiClient.post(
-    '/process-files/',
+    '/process-files',
     {
       files: files,
       prompt: prompt,
@@ -45,7 +46,10 @@ async function processFiles(files, prompt, positive, highlight) {
       highlight: highlight
     },
     {
-      headers: { "Content-Type": "application/json" }
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+       }
     }
   );
 }

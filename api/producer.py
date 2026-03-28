@@ -6,6 +6,7 @@ import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from functools import reduce
+import time
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL")
@@ -15,8 +16,14 @@ QUEUE = "image_queue"
 class Producer():
     def __init__(self):
         self.channel = None
-        self.setup_rabbitmq_producer()
         
+        try:
+            self.setup_rabbitmq_producer()
+        except pika.exceptions.AMQPConnectionError as e:
+            print(f"Connection failed: {e}, retrying in 5s...")
+            time.sleep(5)
+            self.setup_rabbitmq_producer()
+
     def setup_rabbitmq_producer(self):
         host = os.getenv("RABBITMQ_HOST", "localhost")
         connection_params = pika.ConnectionParameters(
@@ -28,20 +35,21 @@ class Producer():
         self.channel = connection.channel()
         self.channel.queue_declare(queue=QUEUE, durable=True)
 
-    def check_queue(self) -> list:
+    def check_queue(self, user) -> list:
         files = []
         while True:
-            method, properties, body = self.channel.basic_get(queue=QUEUE, auto_ack=False)
+            method, _, body = self.channel.basic_get(queue=QUEUE, auto_ack=False)
             if method is None:
                 break
             body = json.loads(body)
-            files.append(body["files"])
+            if body["user_id"] == user:
+                files.append(body["files"])
             self.channel.basic_nack(method.delivery_tag, requeue=True)
         return reduce(lambda x, y: x + y, files, [])
 
-    def create_file_queue(self, files, prompt, positive, highlight):
+    def create_file_queue(self, user, files, prompt, positive, highlight):
         message = {
-#            "user_id": q.user_id,
+            "user_id": user,
             "files": files,
             "prompt": prompt,
             "positive": positive,

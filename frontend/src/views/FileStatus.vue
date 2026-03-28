@@ -1,5 +1,13 @@
 <template>
   <div class="home container py-4">
+  <div>
+    <button
+      class="btn btn-sm btn-outline-secondary"
+      @click="loadFiles"
+    >
+      Refresh Files
+    </button>
+  </div>
     <div
       v-if="filesLoaded"
       v-for="(statusObj, index) in files"
@@ -77,6 +85,14 @@
                   >
                   </input>
                 </div>
+                <div>
+                  <input
+                    v-model="selectedFilesForDownload"
+                    type="checkbox"
+                    :value="file"
+                  >
+                  </input>
+                  </div>
               </li>
             </ul>
           </div>
@@ -108,7 +124,8 @@ export default {
     return {
       files: [],
       showModal: false,
-      selectedFiles: []
+      selectedFiles: [],
+      selectedFilesForDownload: []
     }
   },
   computed: {
@@ -144,6 +161,15 @@ export default {
           type:'error'
         })
       }
+    },
+    downloadZip() {
+      for (const fileName in this.selectedFilesForDownload) {
+        // get the file and add it to the blob
+        
+      }
+    },
+    downloadTar() {
+
     },
     editFile(file) {
       this.$router.push({ name: 'Edit', params: { imageTitle: file } });

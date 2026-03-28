@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - app-network
+      - internal-network
   api:
     container_name: api
     build:
@@ -55,6 +55,7 @@ services:
       - "8000:80"
     networks:
       - app-network
+      - internal-network
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:80/health')"]
       interval: 10s
@@ -64,6 +65,12 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.myapp.rule=Host(`app.${DOMAIN}`)"
+#      - "traefik.http.routers.myapp.entrypoints=web"  # websecure
+#      - "traefik.http.routers.myapp.tls.certresolver=letsencrypt"
+#      - "traefik.docker.network=app-network"
   frontend:
     container_name: frontend
     build:
@@ -73,6 +80,13 @@ services:
       - "8080:80"
     networks:
       - app-network
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.myapp.rule=Host(`app.${DOMAIN}`)"
+#      - "traefik.http.routers.myapp.entrypoints=web" # websecure
+#      - "traefik.http.routers.myapp.tls.certresolver=letsencrypt"
+#      - "traefik.docker.network=app-network"
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -84,12 +98,32 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - app-network
-
+      - internal-network
+#  traefik:
+#    image: traefik:v3.3
+#    command:
+#      - "--entrypoints.web.address=:80"
+#      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
+#      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+#      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+#      - "--entrypoints.websecure.address=:443"
+#      - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
+#      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+#      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
+#      - "--providers.docker=true"
+#      - "--providers.docker.exposedbydefault=false"
+#      - "--api.dashboard=true"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#      - ./traefik/acme.json:/acme.json
+#    ports:
+#      - "80:80"
+#      - "443:443"
 networks:
   app-network:
     driver: bridge
-
+  internal-network:
+    driver: bridge
 volumes:
   uploads:
   processed:

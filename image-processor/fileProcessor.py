@@ -50,28 +50,23 @@ class FileProcessor():
             device = torch.device("cpu")
         return device
 
-    def file_processed(self, file) -> bool:
-        path_to_check = os.path.join(self.processed_directory, file)
-        return not os.path.exists(path_to_check)
-
-    def create_process_queue(self, files):
-        unprocessed_files = list(filter(self.file_processed, files))
-        for file in unprocessed_files:
+    def create_process_queue(self, user, files):
+        for file in files:
             if file.endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp')) and file in files:
                 self.file_q.put(file)
 
-    def process_files_in_queue(self, prompt, positive, highlight):
+    def process_files_in_queue(self, user, prompt, positive, highlight):
         print(f'Started Processing {datetime.now()}')
 
         while not self.file_q.empty():
-            self.__process_file(self.file_q.get(), prompt, positive, highlight)
+            self.__process_file(user, self.file_q.get(), prompt, positive, highlight)
             self.file_q.task_done()
         print(f'Finished Processing {datetime.now()}')
 
-    def __process_file(self, file, prompt, positive, highlight):
+    def __process_file(self, user, file, prompt, positive, highlight):
         logger.info(f'Processing {file}')
         processed_dir = Path(self.processed_directory)
-        self.target_processed_folder = processed_dir / Path(file).stem
+        self.target_processed_folder = processed_dir / user / Path(file).stem
         self.target_processed_folder.mkdir(parents=True, exist_ok=True)
         mask_dir = self.target_processed_folder / "masks"
         mask_dir = mask_dir.resolve()
@@ -83,19 +78,19 @@ class FileProcessor():
 
         if prompt == '':
             logger.info(f'Using sam2 only {datetime.now()}')
-            self.__process_sam2(mask_dir, file)
-            shutil.move(str(Path(self.target_directory) / file), str(self.target_processed_folder / "original" / f"{file}"))
+            self.__process_sam2(user, mask_dir, file)
+            shutil.move(str(Path(self.target_directory) / user / file), str(self.target_processed_folder / "original" / f"{file}"))
 
         else:
             logger.info(f'Using grounded-sam2 {datetime.now()}')
-            self.__process_grounded_sam2(mask_dir, file, prompt)
-            shutil.move(str(Path(self.target_directory) / file), str(self.target_processed_folder / "original" / f"{file}"))
+            self.__process_grounded_sam2(user, mask_dir, file, prompt)
+            shutil.move(str(Path(self.target_directory) / user / file), str(self.target_processed_folder / "original" / f"{file}"))
 
             logger.info(f'Editing {file}')
             self.file_editor.edit_image(file, self.target_processed_folder, positive, highlight)
 
-    def __process_grounded_sam2(self, mask_dir, file, prompt):
-        masks = self.__generate_grounded_sam2_mask(prompt, str(Path(self.target_directory) / file))
+    def __process_grounded_sam2(self, user, mask_dir, file, prompt):
+        masks = self.__generate_grounded_sam2_mask(prompt, str(Path(self.target_directory) / user / file))
 
         for index, mask in enumerate(masks):
             mask_image = np.asarray(mask)
@@ -114,8 +109,8 @@ class FileProcessor():
         del masks
         gc.collect()
 
-    def __process_sam2(self, mask_dir, file):
-        masks = self.__generate_sam2_masking(str(Path(self.target_directory) / file))
+    def __process_sam2(self, user, mask_dir, file):
+        masks = self.__generate_sam2_masking(str(Path(self.target_directory) / user / file))
 
         for index, mask in enumerate(masks):
             mask_image = mask["segmentation"]

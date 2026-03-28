@@ -1,10 +1,6 @@
 <script setup>
-import { RouterLink, RouterView, useRouter, useRoute } from 'vue-router'
+import { RouterView } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
-const router = useRouter();
-const currentRoute = useRoute()
-
-const routes = router.getRoutes();
 </script>
 
 <template>
