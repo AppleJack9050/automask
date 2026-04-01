@@ -29,7 +29,6 @@
             </select>
           </form>
         </div>
-
         <div class="modal-footer">
           <button
             type="button"
@@ -42,7 +41,6 @@
             type="button"
             @click="save"
             class="btn btn-primary"
-            :disabled="extensionNull"
           >
             Save Image
           </button>
@@ -94,7 +92,7 @@ export default {
       document.body.removeChild(link);
     },
     async saveToBackend() {
-      fileservice.saveImage(this.file, this.fileName, this.selectedFileType);
+      await fileservice.saveImage(this.file, this.fileName, this.selectedFileType);
     },
     async save() {
       if (!this.extensionEntered) {

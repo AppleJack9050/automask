@@ -52,10 +52,12 @@ class FileEditor:
         mask_files = os.listdir(f'{target_dir}/masks')
         self.__make_edited_image_directory(target_dir)
 
+        combined_mask = torch.zeros_like(image_tensor, dtype=torch.bool)
         for mask in mask_files:
-            mask = Image.open(target_dir / "masks" / mask)
-            image_tensor = self.__keep_object_in_image(image_tensor, image_to_tensor(np.array(mask)))  
+            mask = image_to_tensor(np.array(Image.open(target_dir / "masks" / mask)))
+            combined_mask = torch.logical_or(combined_mask, mask)
 
+        image_tensor = self.__keep_object_in_image(image_tensor, combined_mask)
         self.save_edited_image(image_tensor, target_dir, image_name)
 
     def negative_prompt_edit(self, target_dir, image_name, image_tensor):
@@ -133,4 +135,3 @@ class FileEditor:
 
         image = Image.fromarray(image)
         image.save(Path(target_dir / "edited" / image_name).with_suffix(".png"))
-

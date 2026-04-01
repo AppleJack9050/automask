@@ -7,6 +7,9 @@ import base64
 from PIL import Image
 from io import BytesIO
 from filesTable import FilesTable
+import io
+
+#TODO fix file names
 
 class FileHandler:
     def __init__(self, directory, processed_directory):
@@ -17,47 +20,52 @@ class FileHandler:
 
     def handle_zip(self, user, zip_file, file_name):
         file_name = self.file_table.insert_name(file_name, user)
-
         temp_directory = os.path.join(self.upload_directory, "_temp_extract")
-        os.makedirs(temp_directory, exist_ok=True)
-
-        zip_path = os.path.join(temp_directory, user, file_name)
+        zip_path = os.path.join(temp_directory, file_name)
 
         with open(zip_path, "wb") as f:
             f.write(zip_file.file.read())
 
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(temp_directory)
+        with zipfile.ZipFile(zip_path, "r") as zip:
+            zip.extractall(temp_directory)
 
-        self.__extract_temp_directory(temp_directory)
+        os.remove(zip_path)
+        self.__extract_temp_directory(user, temp_directory)
 
     def handle_tar(self, user, tar_file, file_name):
         temp_directory = os.path.join(self.upload_directory, "_temp_extract")
         os.makedirs(temp_directory, exist_ok=True)
         file_name = self.file_table.insert_name(file_name, user)
-
         tar_path = os.path.join(temp_directory, file_name)
 
         with open(tar_path, "wb") as f:
             f.write(tar_file.file.read())
 
-        with tarfile.TarFile(tar_path, "r") as tar_ref:
+        with tarfile.open(tar_path, "r:*") as tar_ref:
             tar_ref.extractall(temp_directory)
 
-        self.__extract_temp_directory(temp_directory)
+        os.remove(tar_path)
+        self.__extract_temp_directory(user, temp_directory)
 
-    def __extract_temp_directory(self, temp_directory):
+    def __extract_temp_directory(self, user, temp_directory):
         for root, _, files in os.walk(temp_directory):
-            for f in files:
-                f = self.file_table.insert_name(f, "admin")
-                src_path = os.path.join(root, f)
-                dest_path = os.path.join(self.upload_directory, f)
-                base, ext = os.path.splitext(f)
+            for file in files:
+                if file.startswith("._"):
+                    continue
+
+                src_path = os.path.join(root, file)
+
+                new_name = self.file_table.insert_name(file_name=file, user=user)
+                base, ext = os.path.splitext(new_name)
+                dest_path = os.path.join(self.upload_directory, user, new_name)
+
                 count = 1
                 while os.path.exists(dest_path):
-                    dest_path = os.path.join(self.upload_directory, f"{base}_{count}{ext}")
+                    dest_path = os.path.join(self.upload_directory, user, f"{base}_{count}{ext}")
                     count += 1
+
                 shutil.move(src_path, dest_path)
+
         shutil.rmtree(temp_directory)
 
     async def handle_single_file(self, user, file, file_name):
@@ -72,9 +80,9 @@ class FileHandler:
             filename = file.filename
             match filename:
                 case file_name if filename.endswith(".zip"):
-                    self.handle_zip(file, filename)
-                case file_name if filename.endswith(".tar.gz"):
-                    self.handle_tar(file, filename)
+                    self.handle_zip(user, file, filename)
+                case file_name if filename.endswith(".tar.gz") or filename.endswith(".tar") or filename.endswith(".tgz"):
+                    self.handle_tar(user, file, filename)
                 case _:
                     await self.handle_single_file(user, file, filename)
 
@@ -119,20 +127,18 @@ class FileHandler:
         return masks
 
     def save(self, user, file, file_name, file_type):
-        stored_file_name = self.file_table.get_stored_name(file_name)
-        if not os.path.exists(self.saved_directory):
-            os.makedirs(self.saved_directory)
+        stored_file_name = self.file_table.get_stored_name(file_name, user)
+        if not os.path.exists(os.path.join(self.saved_directory, user)):
+            os.makedirs(os.path.join(self.saved_directory, user))
 
         image_data = base64.b64decode(file)
 
-        file_path = Path(self.saved_directory) / user / f"{stored_file_name}{file_type}"
+        file_path = Path(self.saved_directory) / user / f"{stored_file_name}"
         with open(file_path.resolve(), "wb") as image:
             image.write(image_data)
 
-    def download(self, user, file_name):
+    def download(self, user, file_name) -> str:
         file_path = os.path.join(self.saved_directory, user, self.file_table.get_stored_name(file_name))
-
-        _, file_type = os.path.splitext(file_path)
         image = Image.open(file_path)
         image.thumbnail((image.size))
         buffered = BytesIO()
@@ -156,6 +162,7 @@ class FileHandler:
                 lambda stored_name: self.file_table.get_actual_name(stored_name, user),
                 os.listdir(os.path.join(self.processed_directory, user))
         ))
+
         saved_files = list(
             map(
                 lambda stored_name: self.file_table.get_actual_name(stored_name, user),
@@ -178,9 +185,9 @@ class FileHandler:
         stored_file_name = self.file_table.get_stored_name(file_name)
         stored_file_stem = Path(stored_file_name).stem
     
-        unproccessed_file_path = os.path.join(self.upload_directory, stored_file_name)
-        proccessed_file_path = os.path.join(self.processed_directory, stored_file_stem)
-        saved_file_path = os.path.join(self.saved_directory, stored_file_name)
+        unproccessed_file_path = os.path.join(self.upload_directory, user, stored_file_name)
+        proccessed_file_path = os.path.join(self.processed_directory, user, stored_file_stem)
+        saved_file_path = os.path.join(self.saved_directory, user, stored_file_name)
 
         if os.path.exists(unproccessed_file_path):
             os.remove(unproccessed_file_path)
@@ -191,3 +198,43 @@ class FileHandler:
         if os.path.exists(saved_file_path):
             os.remove(saved_file_path)
         return
+
+    def download_zip_file(self, user, files):
+        return self.__create_zip_file(self.__get_files_and_stored_path(user, files))
+
+    def download_tar_file(self, user, files):
+        return self.__create_tar_file(self.__get_files_and_stored_path(user, files))
+
+    def __create_zip_file(self, files):
+        buffer = io.BytesIO()
+
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip:
+            for file in files:
+                zip.write(file["file_path"], arcname=file["actual_name"])
+        buffer.seek(0)
+        yield buffer.getvalue()
+
+    def __create_tar_file(self, files):
+        buffer = io.BytesIO()
+
+        with tarfile.open(fileobj=buffer, mode='w:gz') as tar:
+            for file in files:
+                tar.add(file["file_path"], arcname=file["actual_name"])
+                
+        buffer.seek(0)
+        yield buffer.getvalue()
+
+    def __get_files_and_stored_path(self, user, files):
+        return list(
+            map(
+                lambda file: 
+                {
+                    "file_path":os.path.join(
+                        self.saved_directory,
+                        user,
+                        self.file_table.get_stored_name(file, user)
+                    ),
+                    "actual_name":file 
+                },
+                files
+        ))

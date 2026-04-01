@@ -55,6 +55,23 @@
               Process Selected
             </button>
           </div>
+          <div
+            v-if="status === 'Saved'"          
+          >
+            <button
+              class="btn btn-secondary"
+              @click="openDownloadModal()"
+            >
+              Download All
+            </button>
+            <button
+              v-if="selectedFilesForDownload.length > 0"
+              class="btn btn-primary"
+              @click="openDownloadModal()"
+            >
+              Download Selected
+            </button>
+          </div>
           <div class="card-body">
             <ul class="list-group list-group-flush">
               <li
@@ -70,13 +87,6 @@
                 >
                   Edit
                 </button>
-                <button
-                  v-if="status === 'Saved'"
-                  class="btn btn-sm btn-secondary"
-                  @click="downloadFile(file)"
-                >
-                  Download
-                </button>
                 <div  v-if="status === 'Unprocessed'">
                   <input
                     v-model="selectedFiles"
@@ -85,14 +95,14 @@
                   >
                   </input>
                 </div>
-                <div>
+                <div v-if="status === 'Saved'">
                   <input
                     v-model="selectedFilesForDownload"
                     type="checkbox"
                     :value="file"
                   >
                   </input>
-                  </div>
+                </div>
               </li>
             </ul>
           </div>
@@ -103,8 +113,11 @@
       <loading></loading>
     </div>
     <prompt-modal
-      @process="this.processFiles"
-      ></prompt-modal>
+      @process="processFiles"
+    ></prompt-modal>
+    <download-modal
+      @download="handleDownload"
+    ></download-modal>
   </div>
 </template>
 
@@ -114,16 +127,18 @@ import fileService from "@/services/fileservice"
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import PromptModal from "@/components/PromptModal.vue";
 import { Modal } from 'bootstrap';
+import DownloadModal from "@/components/DownloadModal.vue";
 
 export default {
   components:{
     Loading,
-    PromptModal
+    PromptModal,
+    DownloadModal
   },
   data() {
     return {
       files: [],
-      showModal: false,
+      showProcessModal: false,
       selectedFiles: [],
       selectedFilesForDownload: []
     }
@@ -137,6 +152,15 @@ export default {
     }
   },
   methods: {
+    async handleDownload(fileName, zip) {
+      if (this.selectedFilesForDownload.length > 1) {
+        return zip ?
+          this.downloadZip(fileName) :
+          this.downloadTar(fileName);
+      } else {
+        this.downloadFile(this.selectedFilesForDownload[0], fileName);
+      }
+    },
     async downloadFile(fileName) {
       try {
         const file = (await fileService.downloadImage(fileName)).data;
@@ -162,14 +186,62 @@ export default {
         })
       }
     },
-    downloadZip() {
-      for (const fileName in this.selectedFilesForDownload) {
-        // get the file and add it to the blob
-        
-      }
-    },
-    downloadTar() {
+    async downloadZip(fileName) {
+      try {
+        const zip = (
+          await fileService.downloadZip(this.selectedFilesForDownload, fileName)
+        );
+        const url = URL.createObjectURL(zip.data);
 
+        const link = document.createElement("a");
+          link.download = `${fileName}.zip`;
+
+          link.href = url;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          this.$notify({
+            title:'Success',
+            text:'File Downlaoded Successfully',
+            type:'success'
+          })
+        } catch (e) {
+          this.$notify({
+            title:'Error',
+            text:e,
+            type:'error'
+          })
+        }
+    },
+    async downloadTar(fileName) {
+      try {
+        const tar = (
+          await fileService.downloadTar(this.selectedFilesForDownload, fileName)
+        );
+
+        const url = URL.createObjectURL(tar.data);
+        const link = document.createElement("a");
+          link.download = `${fileName}.tar.gz`;
+          link.href = url;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          this.$notify({
+            title:'Success',
+            text:'File Downlaoded Successfully',
+            type:'success'
+          })
+        } catch (e) {
+          this.$notify({
+            title:'Error',
+            text:e,
+            type:'error'
+          })
+        }
     },
     editFile(file) {
       this.$router.push({ name: 'Edit', params: { imageTitle: file } });
@@ -220,6 +292,16 @@ export default {
     },
     closeModal() {
       const el = document.getElementById('promptModal');
+      const modal = Modal.getOrCreateInstance(el);
+      modal.hide();
+    },
+    openDownloadModal() {
+      const el = document.getElementById('downloadModal');
+      const modal = Modal.getOrCreateInstance(el);
+      modal.show();
+    },
+    closeDownloadModal() {
+      const el = document.getElementById('downloadModal');
       const modal = Modal.getOrCreateInstance(el);
       modal.hide();
     }

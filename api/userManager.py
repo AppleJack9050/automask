@@ -73,7 +73,7 @@ class UserManager():
 
             return None
 
-    def get_token(self, user_name, password) -> tuple:
+    def get_token(self, user_name, password) -> tuple | None:
         if self.__user_exists(user_name):
             stored_password = self.__fetch_password(user_name)
             if self.__verifiy_user_password(password, stored_password):
@@ -128,10 +128,10 @@ class UserManager():
     def __hash_user_password(self, password):
         return self.password_hash.hash(password)
 
-    def __verifiy_user_password(self, password, stored_password) -> bool:
+    def __verifiy_user_password(self, password, stored_password) -> bool | None:
         return self.password_hash.verify(password, stored_password)
 
-    def __user_exists(self, user_name) -> bool:
+    def __user_exists(self, user_name) -> bool | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """
@@ -143,7 +143,7 @@ class UserManager():
 
             return len(q) > 0
     
-    def __fetch_password(self, user_name) -> str:
+    def __fetch_password(self, user_name) -> str | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """
@@ -157,7 +157,7 @@ class UserManager():
 
             return q[0]
 
-    def __fetch_token(self, user_name) -> tuple:
+    def __fetch_token(self, user_name) -> tuple | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """
@@ -192,7 +192,7 @@ class UserManager():
     def __generate_jwt_token(self, encoding_info):
         return jwt.encode(encoding_info, SECRET_KEY, algorithm=self.algorithm)
 
-    def authenticate_user(self, user_name, password) -> dict:
+    def authenticate_user(self, user_name, password) -> dict | None:
         if self.__user_exists(user_name):
             stored_password = self.__fetch_password(user_name)
             if self.__verifiy_user_password(password, stored_password):
@@ -200,10 +200,10 @@ class UserManager():
 
         return None
 
-    def return_user_token(self, user_name) -> str:
+    def return_user_token(self, user_name) -> str | None:
         return self.update_token(user_name)
 
-    def verify_user_token(self, token) -> str:
+    def verify_user_token(self, token) -> str | None:
         payload = jwt.decode(token, SECRET_KEY, self.algorithm)
 
         user_name = payload.get('bearer')
@@ -214,7 +214,7 @@ class UserManager():
         
         return None
 
-    def get_user_id(self, username) -> str:
+    def get_user_id(self, username) -> str | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """

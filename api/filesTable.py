@@ -25,14 +25,22 @@ class FilesTable:
             """)
             c.commit()
 
-    def insert_name(self, file_name, user) -> str:
+    def insert_name(self, file_name, user) -> str | None:
         count = self.__count_file_duplicates(file_name, user)
-        file_extension = file_name.split(".")[-1]
+
+        file_extension = ""
+        if file_name.endswith(".tar.gz"):
+            file_extension = ".tar.gz"
+            file_name = file_name[0:-6]
+
+        else:
+            file_extension = "." + file_name.split('.')[-1]
+
         if count > 0:
-            file_name = f"{file_name} ({count})"
+            file_name = f"{file_name.removesuffix(file_extension)} ({count}){file_extension}"
 
         with sqlite3.connect(FILES_DB) as c:
-            stored_file_name = str(uuid4()) + "." + file_extension
+            stored_file_name = str(uuid4()) + file_extension
             c.execute(
                 """
                     INSERT INTO files (id, user_id, file_name, stored_file_name)
@@ -47,7 +55,7 @@ class FilesTable:
             c.commit()
             return stored_file_name
 
-    def get_stored_name(self, file_name, user) -> str:
+    def get_stored_name(self, file_name, user) -> str | None:
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    
                 """
@@ -61,7 +69,7 @@ class FilesTable:
             return ""
         return q[0]
         
-    def get_actual_name(self, stored_file_name, user) -> str:
+    def get_actual_name(self, stored_file_name, user) -> str | None:
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    
                 """

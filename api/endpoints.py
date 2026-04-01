@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Request, Depends # type: ignore
-from fastapi.responses import FileResponse, JSONResponse # type: ignore
+from fastapi.responses import JSONResponse, StreamingResponse # type: ignore
 from typing import List
 import os
 from filehandler import FileHandler
@@ -37,6 +37,10 @@ class UpdateUserRequest(BaseModel):
     password: str
     new_password: str
     new_username: str
+
+class DownloadRequest(BaseModel):
+    files: List[str]
+    name: str
 
 @app.get("/files")
 async def get_files(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -120,7 +124,7 @@ async def save_edited_file(file_name: str, request: Request, credentials: HTTPAu
             body = await request.json()
             file = body.get("file")
             file_type = body.get("file_type")
-            file_handler.save(file, file_name, file_type, user_manager.get_user_id(user))
+            file_handler.save(user_manager.get_user_id(user), file, file_name, file_type)
             return {"message": "Saved Successfully"}
         except:
             JSONResponse({"error": "Processing Failed"}, status_code=500)
@@ -194,7 +198,38 @@ async def login(request: LoginRequest):
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
 
-def authenticate_token(credentials) -> str:
+@app.post("/download-zip")
+async def download_zip(request: DownloadRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+    user = authenticate_token(credentials)
+    if user:
+        try:
+            return StreamingResponse(
+                file_handler.download_zip_file(user_manager.get_user_id(user), request.files),
+                media_type="application/zip",
+                headers={"Content-Disposition": f"attachment; filename={request.name}.zip"}
+            )
+        except Exception as e:
+            return JSONResponse({"error":"Error Generating Zip"}, status_code=500)     
+    else:
+        return JSONResponse({"error":"Access denied"}, status_code=401)
+
+@app.post("/download-tar")
+async def download_tar(request: DownloadRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    user = authenticate_token(credentials)
+    if user:
+        try:
+            return StreamingResponse(
+                file_handler.download_tar_file(user_manager.get_user_id(user), request.files),
+                media_type="application/x-tar",
+                headers={"Content-Disposition": f"attachment; filename={request.name}.tar.gz"}
+            )
+        except Exception as e:
+            return JSONResponse({"error":"Error Generating Tar"}, status_code=500)     
+    else:
+        return JSONResponse({"error":"Access denied"}, status_code=401)
+
+def authenticate_token(credentials) -> str | None:
     try:
         user = user_manager.verify_user_token(credentials.credentials)
         return user

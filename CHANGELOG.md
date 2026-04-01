@@ -12,9 +12,11 @@
 - [upgrade] rabbitmq
 - [upgrade] file system upgrade
 - [feature] add users
-- [feature] per user files
+- [feature] download as folders
 
 ### future fixes
 - delete files
 - reset option for editing
 - tooltips
+- input sanitisation
+- kubernetes

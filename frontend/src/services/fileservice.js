@@ -54,44 +54,65 @@ async function processFiles(files, prompt, positive, highlight) {
   );
 }
 async function saveImage(file, fileName, fileType) {
-  try {
-    const response = await apiClient.post(
-      `/save-image/${fileName}`,
-      {
-        file: file,
-        file_type: fileType,
-      },
-      {
-        headers: basicHeaders,
-      }
-    );
-    return response;
-  } catch (error) {
-    this.$notify({
-      title:'Error',
-      text:error.message,
-      type:'error'
-    })
-  }
+  const response = await apiClient.post(
+    `/save-image/${fileName}`,
+    {
+      file: file,
+      file_type: fileType,
+    },
+    {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+  }});
+  return response;
 }
 async function downloadImage(fileName) {
-  try {
-    const response = await apiClient.get(
-      `/download/${fileName}`,
+  const response = await apiClient.get(
+    `/download/${fileName}`,
+    {
+      headers: 
       {
-        headers: basicHeaders,
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       }
-    );
-    return response;
-  } catch (error) {
-    this.$notify({
-      title:'Error',
-      text:error.message,
-      type:'error'
-    })
-  }
-}
+  });
+  return response;
 
+}
+async function downloadZip(files, name) {
+  const response = await apiClient.post(
+    `/download-zip`,
+    {
+      files: files,
+      name: name,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      },
+      responseType: 'blob'
+    }
+);
+  return response;
+}
+async function downloadTar(files, name) {
+  const response = await apiClient.post(
+    `/download-tar`,
+    {
+      files: files,
+      name: name,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+      responseType: 'blob'
+    });
+    return response;
+}
 export default {
     getFiles,
     getFile,
@@ -99,5 +120,7 @@ export default {
     showEditor,
     processFiles,
     saveImage,
-    downloadImage
+    downloadImage,
+    downloadZip,
+    downloadTar
   }
