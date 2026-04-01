@@ -18,5 +18,4 @@
 - delete files
 - reset option for editing
 - tooltips
-- input sanitisation
 - kubernetes

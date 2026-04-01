@@ -14,28 +14,44 @@
     </ul>
     <div v-if="signUp">
       <h2>Sign Up</h2>
-      <form @submit.prevent="create">
-        <input v-model="username" type="text" placeholder="Username" required />
-        <input v-model="password" type="password" placeholder="Password" required />
+      <Form @submit="create">
+        <Field name="username" rules="required|alpha_num" v-model="username" type="text" placeholder="Username" as="input" />
+        <ErrorMessage name="username" />
+        <Field name="password" rules="required|min:8|regex:^\S+$" v-model="password" type="password" placeholder="Password" as="input" />
+        <ErrorMessage name="password" />
         <button type="submit">Sign Up</button>
-      </form>
+      </Form>
     </div>
     <div v-else>
       <h2>Login</h2>
-      <form @submit.prevent="loginUser">
-        <input v-model="username" type="text" placeholder="Username" required />
-        <input v-model="password" type="password" placeholder="Password" required />
+      <Form @submit="loginUser">
+        <Field name="username" rules="required|alpha_num" v-model="username" type="text" placeholder="Username" as="input" />
+        <ErrorMessage name="username" />
+        <Field name="password" rules="required" v-model="password" type="password" placeholder="Password" as="input" />
+        <ErrorMessage name="password" />
         <button type="submit">Login</button>
-      </form>
+      </Form>
     </div>
-
   </div>
 </template>
 
 <script>
 import { useUserStore } from '@/stores/userroles';
 import { mapActions } from 'pinia';
+import { Form, Field, ErrorMessage } from 'vee-validate';
+import { defineRule } from 'vee-validate';
+import { required, min, alpha_num, regex } from '@vee-validate/rules';
+defineRule('required', required);
+defineRule('min', min);
+defineRule('alpha_num', alpha_num);
+defineRule('regex', regex);
+
 export default {
+  components: {
+    Form,
+    Field,
+    ErrorMessage
+  },
   data() {
     return {
       signUp:false,
@@ -59,5 +75,4 @@ export default {
     }
   }
 };
-// TODO username validation
 </script>

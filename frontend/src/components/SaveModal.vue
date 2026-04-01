@@ -41,6 +41,7 @@
             type="button"
             @click="save"
             class="btn btn-primary"
+            :disabled="extensionNull"
           >
             Save Image
           </button>
