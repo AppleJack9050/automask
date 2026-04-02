@@ -13,9 +13,9 @@
 - [upgrade] file system upgrade
 - [feature] add users
 - [feature] download as folders
-
+- [feature] restore option while editing
+- 
 ### future fixes
 - delete files
-- reset option for editing
 - tooltips
 - kubernetes

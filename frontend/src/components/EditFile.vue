@@ -145,6 +145,7 @@ export default {
       shownData: null,
       showCanvas: false,
       transparentBackground: true,
+      restoreBackground: false,
       maskSelector: null,
       touchUpTool: null
     }
@@ -217,6 +218,7 @@ export default {
         this.shownImage,
         this.masks[id].mask,
         this.transparentBackground,
+        this.restoreBackground,
         this.basePixels
       );
       this.contextId = null;
@@ -228,6 +230,7 @@ export default {
         this.shownImage,
         this.masks[id].mask,
         this.transparentBackground,
+        this.restoreBackground,
         this.basePixels
       );
       this.contextId = null;
@@ -243,7 +246,9 @@ export default {
         svgX,
         svgY,
         this.shownData,
-        this.transparentBackground
+        this.transparentBackground,
+        this.restoreBackground,
+        this.basePixels
       );
       this.touchUpCtx.putImageData(this.shownData, 0, 0);
     },
@@ -324,7 +329,9 @@ export default {
         svgPoint.x,
         svgPoint.y,
         this.shownData,
-        this.transparentBackground
+        this.transparentBackground,
+        this.restoreBackground,
+        this.basePixels
       );
     },
     updateTouchUpRadius(value) {
@@ -387,7 +394,16 @@ export default {
       this.updateAfterRedo(this.fileName)
     },
     toggleTransparent(newValue) {
-      this.transparentBackground = newValue;
+      if (newValue == 'transparent') {
+        this.transparentBackground = true;
+        this.restoreBackground = false;
+      } else if (newValue == 'black') {
+        this.transparentBackground = false;
+        this.restoreBackground = false;
+      } else {
+        this.transparentBackground = false;
+        this.restoreBackground = true;
+      }
     }
   },
   watch: {

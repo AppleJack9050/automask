@@ -34,7 +34,7 @@ export const useUserStore = defineStore('roles', {
       } catch (error) {
         notify({
           title:'Login Failed',
-          text:error.message,
+          text:'Username or Password Incorrect.',
           type:'error'
         });
       }

@@ -25,10 +25,8 @@
     <div v-else>
       <h2>Login</h2>
       <Form @submit="loginUser">
-        <Field name="username" rules="required|alpha_num" v-model="username" type="text" placeholder="Username" as="input" />
-        <ErrorMessage name="username" />
+        <Field name="username" rules="required" v-model="username" type="text" placeholder="Username" as="input" />
         <Field name="password" rules="required" v-model="password" type="password" placeholder="Password" as="input" />
-        <ErrorMessage name="password" />
         <button type="submit">Login</button>
       </Form>
     </div>

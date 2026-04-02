@@ -24,8 +24,9 @@
       @click="redo"
     >Redo</button>
     <select v-model="transparent">
-      <option :value=true>Transparent</option>
-      <option :value=false>Black</option>
+      <option :value="'transparent'">Transparent</option>
+      <option :value="'black'">Black</option>
+      <option :value="'restore'">Restore</option>
     </select>
   </div>
 </template>
@@ -42,7 +43,7 @@ export default {
     return {
       touchUpRadius: 10,
       showOriginalImage: false,
-      transparent: true
+      transparent: 'transparent'
     };
   },
   methods: {

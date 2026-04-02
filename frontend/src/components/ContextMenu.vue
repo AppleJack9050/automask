@@ -8,10 +8,10 @@
         <a class="dropdown-item" @click="removeObject">Remove Object from Image</a>
       </li>
       <li>
-        <a class="dropdown-item" @click="save">Save Current Image</a>
+        <a class="dropdown-item" @click="startTouchUp">Use Touch Up Tool</a>
       </li>
       <li>
-        <a class="dropdown-item" @click="startTouchUp">Use Touch Up Tool</a>
+        <a class="dropdown-item" @click="save">Save Current Image</a>
       </li>
       <li>
         <a class="dropdown-item" @click="cancel">Cancel</a>

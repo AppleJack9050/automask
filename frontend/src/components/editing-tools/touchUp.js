@@ -14,7 +14,7 @@ export default class TouchUp {
   updateTouchUpRadius(value) {
     this.touchUpRadius = value;
   }
-  removePixels(svgX, svgY, shownData, transparentBackground) {
+  removePixels(svgX, svgY, shownData, transparentBackground, restoreBackground, basePixels) {
     const imgX = Math.round(svgX * this.scaleX);
     const imgY = Math.round(svgY * this.scaleY);
     const radiusSq = this.touchUpRadius ** 2;
@@ -30,6 +30,10 @@ export default class TouchUp {
       for (let x = startX; x < endX; x++) {
         if ((x - imgX) ** 2 + (y - imgY) ** 2 <= radiusSq) {
           const idx = (rowOffset + x) * 4;
+
+          if (restoreBackground) {
+            pixelRemovingTools.restorePixel(shownData.data, basePixels, x);
+          }
           transparentBackground ? 
             pixelRemovingTools.turnPixelTransparent(shownData.data, idx) :
             pixelRemovingTools.turnPixelBlack(shownData.data, idx);
