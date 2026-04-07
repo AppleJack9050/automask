@@ -14,7 +14,8 @@
 - [feature] add users
 - [feature] download as folders
 - [feature] restore option while editing
-- 
+- [feature] view uploaded file
+
 ### future fixes
 - delete files
 - tooltips

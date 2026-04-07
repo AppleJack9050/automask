@@ -8,17 +8,16 @@ from PIL import Image
 from io import BytesIO
 from filesTable import FilesTable
 import io
-
-#TODO fix file names
+from typing import List
 
 class FileHandler:
-    def __init__(self, directory, processed_directory):
+    def __init__(self, directory: str, processed_directory: str):
         self.upload_directory = directory
         self.processed_directory = processed_directory
         self.saved_directory = "/saved"
         self.file_table = FilesTable()
 
-    def handle_zip(self, user, zip_file, file_name):
+    def handle_zip(self, user: str, zip_file, file_name: str):
         file_name = self.file_table.insert_name(file_name, user)
         temp_directory = os.path.join(self.upload_directory, "_temp_extract")
         zip_path = os.path.join(temp_directory, file_name)
@@ -32,7 +31,7 @@ class FileHandler:
         os.remove(zip_path)
         self.__extract_temp_directory(user, temp_directory)
 
-    def handle_tar(self, user, tar_file, file_name):
+    def handle_tar(self, user: str, tar_file, file_name: str):
         temp_directory = os.path.join(self.upload_directory, "_temp_extract")
         os.makedirs(temp_directory, exist_ok=True)
         file_name = self.file_table.insert_name(file_name, user)
@@ -47,7 +46,7 @@ class FileHandler:
         os.remove(tar_path)
         self.__extract_temp_directory(user, temp_directory)
 
-    def __extract_temp_directory(self, user, temp_directory):
+    def __extract_temp_directory(self, user: str, temp_directory: str):
         for root, _, files in os.walk(temp_directory):
             for file in files:
                 if file.startswith("._"):
@@ -68,13 +67,13 @@ class FileHandler:
 
         shutil.rmtree(temp_directory)
 
-    async def handle_single_file(self, user, file, file_name):
+    async def handle_single_file(self, user: str, file, file_name):
         file_name = self.file_table.insert_name(file_name, user)
         file_path = os.path.join(self.upload_directory, user, file_name)
         with open(file_path, "wb") as out_file:
             shutil.copyfileobj(file.file, out_file)
 
-    async def handle_multiple_files(self, user, files):
+    async def handle_multiple_files(self, user: str, files: List[str]):
         saved_files = []
         for file in files:
             filename = file.filename
@@ -88,7 +87,7 @@ class FileHandler:
 
         return saved_files
 
-    def fetch_image(self, user, image_title, edited_image = False):
+    def fetch_processed_image(self, user: str, image_title: str, edited_image = False):
         stored_file_name = self.file_table.get_stored_name(image_title, user)
         stored_file_name = Path(stored_file_name).stem
 
@@ -98,6 +97,23 @@ class FileHandler:
         else:
             file_path = os.path.join(file_path, "original")
 
+        return self.__find_file_in_directory(stored_file_name, file_path)
+
+    def fetch_saved_image(self, user: str, image_title: str):
+        stored_file_name = self.file_table.get_stored_name(image_title, user)
+        stored_file_name = Path(stored_file_name).stem
+
+        file_path = os.path.join(self.saved_directory, user)
+        return self.__find_file_in_directory(stored_file_name, file_path)
+
+    def fetch_uploaded_image(self, user: str, image_title: str):
+        stored_file_name = self.file_table.get_stored_name(image_title, user)
+        stored_file_name = Path(stored_file_name).stem
+
+        file_path = os.path.join(self.upload_directory, user)
+        return self.__find_file_in_directory(stored_file_name, file_path)
+
+    def __find_file_in_directory(self, stored_file_name: str, file_path: str):
         for root, _, files in os.walk(file_path):
             for file in files:
                 if stored_file_name in file:
@@ -107,7 +123,7 @@ class FileHandler:
                     return  base64.b64encode(buffered.getvalue()).decode("utf-8")
         return None
 
-    def return_image_masks(self, user, file_name):
+    def return_image_masks(self, user: str, file_name: str):
         stored_file_name = self.file_table.get_stored_name(file_name, user)
         file_path = os.path.join(self.processed_directory, user, Path(stored_file_name).stem)
 
@@ -126,18 +142,17 @@ class FileHandler:
                         
         return masks
 
-    def save(self, user, file, file_name, file_type):
+    def save(self, user: str, file, file_name, file_type):
         stored_file_name = self.file_table.get_stored_name(file_name, user)
         if not os.path.exists(os.path.join(self.saved_directory, user)):
             os.makedirs(os.path.join(self.saved_directory, user))
 
         image_data = base64.b64decode(file)
-
         file_path = Path(self.saved_directory) / user / f"{stored_file_name}"
         with open(file_path.resolve(), "wb") as image:
             image.write(image_data)
 
-    def download(self, user, file_name) -> str:
+    def download(self, user: str, file_name) -> str:
         file_path = os.path.join(self.saved_directory, user, self.file_table.get_stored_name(file_name))
         image = Image.open(file_path)
         image.thumbnail((image.size))
@@ -147,7 +162,7 @@ class FileHandler:
         
         return f'data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode("utf-8")}'
 
-    def list_files(self, user, producer) -> list:
+    def list_files(self, user: str, producer) -> list:
         os.makedirs(os.path.join(self.upload_directory, user), exist_ok=True)
         os.makedirs(os.path.join(self.processed_directory, user), exist_ok=True)
         os.makedirs(os.path.join(self.saved_directory, user), exist_ok=True)
@@ -181,7 +196,7 @@ class FileHandler:
             {"Saved": saved_files}
         ]
 
-    def delete_file(self, user, file_name):
+    def delete_file(self, user: str, file_name):
         stored_file_name = self.file_table.get_stored_name(file_name)
         stored_file_stem = Path(stored_file_name).stem
     
@@ -199,13 +214,13 @@ class FileHandler:
             os.remove(saved_file_path)
         return
 
-    def download_zip_file(self, user, files):
+    def download_zip_file(self, user: str, files: List[str]):
         return self.__create_zip_file(self.__get_files_and_stored_path(user, files))
 
-    def download_tar_file(self, user, files):
+    def download_tar_file(self, user: str, files: List[str]):
         return self.__create_tar_file(self.__get_files_and_stored_path(user, files))
 
-    def __create_zip_file(self, files):
+    def __create_zip_file(self, files: List[str]):
         buffer = io.BytesIO()
 
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip:
@@ -214,7 +229,7 @@ class FileHandler:
         buffer.seek(0)
         yield buffer.getvalue()
 
-    def __create_tar_file(self, files):
+    def __create_tar_file(self, files: List[str]):
         buffer = io.BytesIO()
 
         with tarfile.open(fileobj=buffer, mode='w:gz') as tar:
@@ -224,7 +239,7 @@ class FileHandler:
         buffer.seek(0)
         yield buffer.getvalue()
 
-    def __get_files_and_stored_path(self, user, files):
+    def __get_files_and_stored_path(self, user, files: List[str]):
         return list(
             map(
                 lambda file: 
@@ -238,3 +253,6 @@ class FileHandler:
                 },
                 files
         ))
+
+    def share_file(self, file_owner, file_recipiant, file_name):
+        pass

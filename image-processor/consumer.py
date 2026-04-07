@@ -11,7 +11,11 @@ class Consumer():
     def __init__(self):
         self.channel = None
         self.connection = None
-        self.file_processor = FileProcessor(os.getenv("UPLOAD_DIR"), os.getenv("PROCESSED_DIR"))
+        self.file_processor = FileProcessor(
+            os.getenv("UPLOAD_DIR"),
+            os.getenv("PROCESSED_DIR"),
+            os.getenv("SAVED_DIR")   
+        )
         self.setup_consumer()
 
     def setup_consumer(self):
@@ -41,6 +45,7 @@ class Consumer():
                 data["prompt"],
                 data["positive"],
                 data["highlight"],
+                data["saved"]
             )
 
             self.channel.basic_ack(delivery_tag=method.delivery_tag)

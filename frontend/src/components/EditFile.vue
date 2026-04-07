@@ -1,10 +1,12 @@
 <template>
-  <div>
+  <div class="svg-canvas-area d-flex align-items-center justify-content-center flex-grow-1 position-relative overflow-hidden">
     <div
-      class="svg-mask-viewer"
+      class="d-flex align-items-center justify-content-center w-100 h-100r"
       v-if="!loading"
     >
       <edit-toolbar
+        class="bg-white border-bottom px-3 py-2"
+        style="position: sticky; top: 0; z-index: 10;"
         :touching-up="usingTouchUp"
         @restore="this.restoreImage"
         @undo="handleUndo"
@@ -13,6 +15,8 @@
         @transparentRemoval="toggleTransparent"
       ></edit-toolbar>
       <svg
+        class=".d-block.mw-100.mh-100"
+        style="cursor: crosshair;"
         :width="this.imageWidth"
         :height="this.imageHeight"
         :viewBox="`0 0 ${this.imageWidth} ${this.imageHeight}`"
@@ -30,6 +34,7 @@
         />
         <g v-for="(mask, index) in masks" :key="index">
           <image
+            style="transition: opacity 0.15s ease;"
             :ref="el => maskRefs[index] = el"
             :href="`data:image/png;base64,${mask.mask}`"
             :x="mask.x || 0"
@@ -79,8 +84,11 @@
         ></ContextMenu>
         <br />
     </div>
-    <div v-else>
-      <loading></loading>
+    <div
+      v-else
+      class=".d-flex.align-items-center.justify-content-center.py-5"
+    >
+      <loading />
     </div>
   </div>
 </template>
@@ -336,6 +344,7 @@ export default {
     },
     updateTouchUpRadius(value) {
       this.touchUpRadius = value;
+      this.touchUpTool.touchUpRadius = value;
     },
     resetTouchUp(preSnapshot, postSnapshot, undo, restore = false) {
       this.shownImage = this.touchUpTool.resetTouchUp(
@@ -437,7 +446,7 @@ export default {
             title:'Error',
             text:e.message,
             type:'error'
-          })
+          });
           } finally {
             this.loading = false;
           }

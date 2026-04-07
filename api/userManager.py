@@ -33,20 +33,6 @@ class UserManager():
             """)
             c.commit()        
 
-    def test(self):
-        with sqlite3.connect(USERS_DB) as c:
-            q = c.execute(    
-                """
-                    SELECT
-                    *
-                    FROM users
-
-                """,
-                ()).fetchall()
-            c.commit()
-
-            return q
-
     def create_user(self, user_name, password):
         if not self.__user_exists(user_name):
             timestamp = time.time()
@@ -205,13 +191,13 @@ class UserManager():
 
     def verify_user_token(self, token) -> str | None:
         payload = jwt.decode(token, SECRET_KEY, self.algorithm)
-
+      
         user_name = payload.get('bearer')
         timestamp = payload.get('start_time')
         stored_token = self.__fetch_token(user_name)[0]
         if hmac.compare_digest(token, stored_token) and time.time() - float(timestamp) < self.session_timeout:
             return user_name
-        
+
         return None
 
     def get_user_id(self, username) -> str | None:

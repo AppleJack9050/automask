@@ -1,107 +1,122 @@
 <template>
-  <div class="home container py-4">
-  <div>
-    <button
-      class="btn btn-sm btn-outline-secondary"
-      @click="loadFiles"
-    >
-      Refresh Files
-    </button>
-  </div>
-    <div
-      v-if="filesLoaded"
-      v-for="(statusObj, index) in files"
-      :key="index"
-      class="mb-3"
-    >
+  <div class="home container-lg py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <button
+        class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+        @click="loadFiles"
+      >
+        <span>↻</span> Refresh
+      </button>
+    </div>
+    <div v-if="filesLoaded">
       <div
-        v-for="(fileList, status) in statusObj"
-        :key="status"
-        class="card"
+        v-for="(statusObj, index) in files"
+        :key="index"
+        class="mb-4"
       >
         <div
-          class="card-header d-flex justify-content-between align-items-center"
+          v-for="(fileList, status) in statusObj"
+          :key="status"
+          class="card border-0 shadow-sm rounded-3"
         >
-          <h5 class="mb-0">{{ status }}</h5>
-          <button
-            class="btn btn-sm btn-outline-secondary"
-            type="button"
-            data-bs-toggle="collapse"
-            :data-bs-target="'#collapse-' + index + '-' + status"
-            aria-expanded="false"
-            :aria-controls="'collapse-' + index + '-' + status"
-          >
-            ☰
-          </button>
-        </div>
-        <div
-          :id="'collapse-' + index + '-' + status"
-          class="collapse show"
-        >
-          <div
-            v-if="status === 'Unprocessed'"          
-          >
+          <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center px-4 py-3 rounded-top-3">
+            <div class="d-flex align-items-center gap-2">
+              <span
+                class="badge rounded-pill"
+                :class="{
+                  'bg-warning text-dark': status === 'Unprocessed',
+                  'bg-success': status === 'Saved',
+                  'bg-secondary': status !== 'Unprocessed' && status !== 'Saved'
+                }"
+              >
+                {{ fileList.length }}
+              </span>
+              <h6 class="mb-0 fw-semibold">{{ status }}</h6>
+            </div>
             <button
-              class="btn btn-secondary"
-              @click="openPromptModal()"
+              class="btn btn-sm btn-light border"
+              type="button"
+              data-bs-toggle="collapse"
+              :data-bs-target="'#collapse-' + index + '-' + status"
+              aria-expanded="true"
+              :aria-controls="'collapse-' + index + '-' + status"
             >
-              Process All
-            </button>
-            <button
-              v-if="filesSelected"
-              class="btn btn-primary"
-              @click="openPromptModal()"
-            >
-              Process Selected
+              ☰
             </button>
           </div>
           <div
-            v-if="status === 'Saved'"          
+            :id="'collapse-' + index + '-' + status"
+            class="collapse show"
           >
-            <button
-              class="btn btn-secondary"
-              @click="openDownloadModal()"
+            <div
+              v-if="status === 'Unprocessed' || status === 'Saved'"
+              class="px-4 py-2 bg-light border-bottom d-flex flex-wrap gap-2 align-items-center"
             >
-              Download All
-            </button>
-            <button
-              v-if="selectedFilesForDownload.length > 0"
-              class="btn btn-primary"
-              @click="openDownloadModal()"
-            >
-              Download Selected
-            </button>
-          </div>
-          <div class="card-body">
+              <button
+                class="btn btn-sm btn-outline-primary"
+                @click="openPromptModal(status === 'Saved')"
+              >
+                Process All
+              </button>
+              <button
+                v-if="filesSelectedUpload || filesSelectedSaved"
+                class="btn btn-sm btn-primary"
+                @click="openPromptModal()"
+              >
+                Process Selected
+              </button>
+              <template v-if="status === 'Saved'">
+                <div class="vr mx-1"></div>
+                <button
+                  class="btn btn-sm btn-outline-success"
+                  @click="openDownloadModal()"
+                >
+                  Download All
+                </button>
+                <button
+                  v-if="filesSelectedSaved"
+                  class="btn btn-sm btn-success"
+                  @click="openDownloadModal()"
+                >
+                  Download Selected
+                </button>
+              </template>
+            </div>
+
+            <!-- File List -->
             <ul class="list-group list-group-flush">
               <li
                 v-for="file in fileList"
                 :key="file"
-                class="list-group-item d-flex justify-content-between align-items-center"
+                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-4 py-3"
               >
-                {{ file }}
-                <button
-                  v-if="status === 'Processed'"
-                  class="btn btn-sm btn-secondary"
-                  @click="editFile(file)"
-                >
-                  Edit
-                </button>
-                <div  v-if="status === 'Unprocessed'">
-                  <input
-                    v-model="selectedFiles"
-                    type="checkbox"
-                    :value="file"
-                  >
-                  </input>
-                </div>
-                <div v-if="status === 'Saved'">
-                  <input
-                    v-model="selectedFilesForDownload"
-                    type="checkbox"
-                    :value="file"
-                  >
-                  </input>
+                <span class="text-truncate me-3 text-body-secondary small fw-medium">
+                  {{ file }}
+                </span>
+
+                <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                  <div v-if="status === 'Unprocessed'">
+                    <input
+                      v-model="selectedFiles"
+                      type="checkbox"
+                      class="form-check-input"
+                      :value="file"
+                    />
+                  </div>
+                  <div v-if="status === 'Saved'">
+                    <input
+                      v-model="selectedFilesSaved"
+                      type="checkbox"
+                      class="form-check-input"
+                      :value="file"
+                    />
+                  </div>
+                  <dropdown-menu
+                    :options="options"
+                    :item="file"
+                    :status="status"
+                    @option-click="handleAction"
+                  />
                 </div>
               </li>
             </ul>
@@ -109,15 +124,11 @@
         </div>
       </div>
     </div>
-    <div v-else>
-      <loading></loading>
+    <div v-else class="d-flex justify-content-center align-items-center py-5">
+      <loading />
     </div>
-    <prompt-modal
-      @process="processFiles"
-    ></prompt-modal>
-    <download-modal
-      @download="handleDownload"
-    ></download-modal>
+    <prompt-modal @process="processFiles" :saved="saved"/>
+    <download-modal @download="handleDownload" :saved="saved"/>
   </div>
 </template>
 
@@ -128,38 +139,41 @@ import 'bootstrap/dist/js/bootstrap.bundle.min';
 import PromptModal from "@/components/PromptModal.vue";
 import { Modal } from 'bootstrap';
 import DownloadModal from "@/components/DownloadModal.vue";
+import DropdownMenu from "@/components/DropdownMenu.vue";
 
 export default {
   components:{
     Loading,
     PromptModal,
-    DownloadModal
+    DownloadModal,
+    DropdownMenu
   },
   data() {
     return {
       files: [],
       showProcessModal: false,
+      saved: false,
       selectedFiles: [],
-      selectedFilesForDownload: []
+      selectedFilesSaved: [],
+      options: ["View", "Delete"]
     }
   },
   computed: {
     filesLoaded() {
       return this.files.length !== 0;
     },
-    filesSelected() {
+    filesSelectedUpload() {
       return this.selectedFiles.length > 0;
+    },
+    filesSelectedSaved() {
+      return this.selectedFilesSaved.length > 0;
     }
   },
   methods: {
     async handleDownload(fileName, zip) {
-      if (this.selectedFilesForDownload.length > 1) {
-        return zip ?
-          this.downloadZip(fileName) :
-          this.downloadTar(fileName);
-      } else {
-        this.downloadFile(this.selectedFilesForDownload[0], fileName);
-      }
+      return zip ?
+        this.downloadZip(fileName) :
+        this.downloadTar(fileName);
     },
     async downloadFile(fileName) {
       try {
@@ -189,7 +203,7 @@ export default {
     async downloadZip(fileName) {
       try {
         const zip = (
-          await fileService.downloadZip(this.selectedFilesForDownload, fileName)
+          await fileService.downloadZip(this.selectedFilesSaved, fileName)
         );
         const url = URL.createObjectURL(zip.data);
 
@@ -218,7 +232,7 @@ export default {
     async downloadTar(fileName) {
       try {
         const tar = (
-          await fileService.downloadTar(this.selectedFilesForDownload, fileName)
+          await fileService.downloadTar(this.selectedFilesSaved, fileName)
         );
 
         const url = URL.createObjectURL(tar.data);
@@ -243,12 +257,28 @@ export default {
           })
         }
     },
-    editFile(file) {
-      this.$router.push({ name: 'Edit', params: { imageTitle: file } });
+    editFile(file, saved) {
+      this.$router.push({ name: 'Edit', params: { imageTitle:file, saved:saved, uploadOnly: false } });
     },
     async processFiles(prompt, positive, highlight) {
       try {
-        await fileService.processFiles(
+        if (this.selectedFilesSaved) {
+          await fileService.processFiles(
+          this.selectedFiles.length === 0 ?
+            this.files
+              .filter(f => f.hasOwnProperty('Saved'))
+              .map(f => f.Saved)
+              .flat() :
+            this.selectedFiles,
+            prompt,
+            positive,
+            highlight,
+            true
+          );          
+        } 
+
+        if (this.filesSelectedUpload) {
+          await fileService.processFiles(
           this.selectedFiles.length === 0 ?
             this.files
               .filter(f => f.hasOwnProperty('Unprocessed'))
@@ -257,8 +287,11 @@ export default {
             this.selectedFiles,
           prompt,
           positive,
-          highlight
+          highlight,
+          false
         );
+        }
+
         this.closeModal();
         this.$notify({
           title:'Success',
@@ -296,6 +329,7 @@ export default {
       modal.hide();
     },
     openDownloadModal() {
+      this.saved = true;
       const el = document.getElementById('downloadModal');
       const modal = Modal.getOrCreateInstance(el);
       modal.show();
@@ -304,6 +338,26 @@ export default {
       const el = document.getElementById('downloadModal');
       const modal = Modal.getOrCreateInstance(el);
       modal.hide();
+    },
+    deleteFile(file, section) {
+    },
+    viewFile(file) {
+      this.$router.push({ name: 'Edit', params: { imageTitle:file, saved: false, uploadOnly: true } });
+    },
+    handleAction(action, item, section) {
+      switch (action) {
+        case 'View':
+          return section === 'Unprocessed' ?
+            this.viewFile(
+              item
+            ) :
+            this.editFile(
+              item,
+              section === 'Saved'
+            );
+        case 'Delete':
+          this.deleteFile(item, section);
+      }
     }
   },
   created() {

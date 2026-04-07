@@ -16,7 +16,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/edit-file/:imageTitle',
+      path: '/edit-file/:imageTitle/:saved/:uploadOnly',
       name: 'Edit',
       component: () => import('../views/EditFileView.vue'),
       meta: { requiresAuth: true },

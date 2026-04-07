@@ -42,6 +42,17 @@ class DownloadRequest(BaseModel):
     files: List[str]
     name: str
 
+class ShowFilesRequest(BaseModel):
+    file_name: str
+    saved: bool
+
+class ProcessRequest(BaseModel):
+    saved: bool
+    files: List[str]
+    prompt: str
+    positive: bool
+    highlight: bool
+
 @app.get("/files")
 async def get_files(credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = authenticate_token(credentials)
@@ -68,48 +79,64 @@ async def delete_file(file_name: str, credentials: HTTPAuthorizationCredentials 
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
 
-@app.get("/show-file/{file_name}")
-async def show_editor(file_name: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+@app.post("/show-file")
+async def show_editor(request: ShowFilesRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = authenticate_token(credentials)
     if user:
         image_masks = []
         base_image = ""
         edited_image = ""
         try:
-            base_image = file_handler.fetch_image(user_manager.get_user_id(user), file_name)
-            image_masks = file_handler.return_image_masks(user_manager.get_user_id(user), file_name)
+            if request.saved:
+                edited_image = file_handler.fetch_saved_image(user_manager.get_user_id(user), request.file_name)
+            else:
+                edited_image = file_handler.fetch_processed_image(user_manager.get_user_id(user), request.file_name, True)
+
+            base_image = file_handler.fetch_processed_image(user_manager.get_user_id(user), request.file_name)
+            image_masks = file_handler.return_image_masks(user_manager.get_user_id(user), request.file_name)
+
         except Exception as e:
             return JSONResponse({"error": "File not found"}, status_code=404)
-
-        try:
-            edited_image = file_handler.fetch_image(user_manager.get_user_id(user), file_name, True)
-        except Exception as e:
-            pass
 
         return {"masks":image_masks, "base_image":base_image, "edited_image":edited_image}
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
 
+@app.get("/view-upload-file/{file_name}")
+async def show_editor(file_name: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    user = authenticate_token(credentials)
+    if user:
+        base_image = ""
+        try:
+            base_image = file_handler.fetch_uploaded_image(user_manager.get_user_id(user), file_name)
+        except Exception as e:
+            return JSONResponse({"error": "File not found"}, status_code=404)
+
+        return {"base_image":base_image}
+    else:
+        return JSONResponse({"error":"Access denied"}, status_code=401)
+
 @app.post("/process-files")
-async def process_files(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def process_files(request: ProcessRequest, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = authenticate_token(credentials)
     if user:
         try:
-            body = await request.json()
-            files = body.get('files')
-            prompt = body.get('prompt')
-            positive = body.get('positive')
-            highlight = body.get('highlight')
             user_id = user_manager.get_user_id(user)
 
             stored_files = list(
                 map(
                     lambda file: file_handler.file_table.get_stored_name(file, user_id),
-                    files
+                    request.files
             )) 
 
-            producer.create_file_queue(user_id, stored_files, prompt, positive, highlight)
-
+            producer.create_file_queue(
+                user_id,
+                stored_files,
+                request.prompt,
+                request.positive,
+                request.highlight,
+                request.saved
+            )
             return {"message":"success"}
         except Exception as e:
             JSONResponse({"error": "Processing Failed"}, status_code=500)

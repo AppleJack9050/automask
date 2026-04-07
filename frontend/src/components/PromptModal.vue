@@ -32,7 +32,6 @@
                 v-model="prompt"
               >
               </input>
-              <br></br>
               <select
                 v-model="positive"
               >
@@ -54,6 +53,7 @@
             >
               Process
             </button>
+            {{ status }}
           </div>
         </div>
       </div>

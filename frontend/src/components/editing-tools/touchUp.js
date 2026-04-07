@@ -32,11 +32,12 @@ export default class TouchUp {
           const idx = (rowOffset + x) * 4;
 
           if (restoreBackground) {
-            pixelRemovingTools.restorePixel(shownData.data, basePixels, x);
+            pixelRemovingTools.restorePixel(shownData.data, basePixels, idx);
+          } else {
+            transparentBackground ? 
+              pixelRemovingTools.turnPixelTransparent(shownData.data, idx) :
+              pixelRemovingTools.turnPixelBlack(shownData.data, idx);
           }
-          transparentBackground ? 
-            pixelRemovingTools.turnPixelTransparent(shownData.data, idx) :
-            pixelRemovingTools.turnPixelBlack(shownData.data, idx);
         }
       }
     }

@@ -30,20 +30,31 @@ async function putFiles(files) {
       },
     });
 }
-async function showEditor(fileName) {
-    return await apiClient.get(
-      `/show-file/${fileName}`,
+async function showEditor(fileName, saved) {
+    return await apiClient.post(
+      `/show-file`,
+      {
+        file_name: fileName,
+        saved: saved
+      },
       basicHeaders
     )
 }
-async function processFiles(files, prompt, positive, highlight) {
+async function showUploadFile(fileName) {
+  return await apiClient.get(
+    `view-upload-file/${fileName}`,
+    basicHeaders
+  )
+}
+async function processFiles(files, prompt, positive, highlight, saved) {
   return await apiClient.post(
     '/process-files',
     {
       files: files,
       prompt: prompt,
       positive: positive,
-      highlight: highlight
+      highlight: highlight,
+      saved: saved
     },
     {
       headers: {
@@ -122,5 +133,6 @@ export default {
     saveImage,
     downloadImage,
     downloadZip,
-    downloadTar
+    downloadTar,
+    showUploadFile
   }

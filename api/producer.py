@@ -35,7 +35,7 @@ class Producer():
         self.channel = connection.channel()
         self.channel.queue_declare(queue=QUEUE, durable=True)
 
-    def check_queue(self, user) -> list:
+    def check_queue(self, user: str) -> list:
         files = []
         while True:
             method, _, body = self.channel.basic_get(queue=QUEUE, auto_ack=False)
@@ -47,13 +47,14 @@ class Producer():
             self.channel.basic_nack(method.delivery_tag, requeue=True)
         return reduce(lambda x, y: x + y, files, [])
 
-    def create_file_queue(self, user, files, prompt, positive, highlight):
+    def create_file_queue(self, user: str, files: list, prompt: str, positive: bool, highlight: bool, saved: bool):
         message = {
             "user_id": user,
             "files": files,
             "prompt": prompt,
             "positive": positive,
-            "highlight": highlight
+            "highlight": highlight,
+            "saved": saved
         }
 
         message = json.dumps(message)

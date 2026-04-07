@@ -9,7 +9,7 @@ const routes = router.getRoutes();
   <div>
     <aside>
       <div>
-        <h2>Interactive Mask Selection</h2>
+        <h2>Automask</h2>
       </div>
       <nav class="sidebar-nav">
           <router-link

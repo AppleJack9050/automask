@@ -8,7 +8,7 @@ export default class MaskSelector {
     this.redoStore = useRedoStore();
     this.fileName = fileName;
   }
-  async removeObject(id, undo = false, image, mask, transparentBackground, restoreBackGround, basePixels = null) {
+  async removeObject(id, undo = false, image, mask, transparentBackground, restoreBackground, basePixels = null) {
     if (undo) {
       this.redoStore.addFileFuture(this.fileName, {id:[id], action:'remove', undo:true});
     } else {
@@ -22,14 +22,12 @@ export default class MaskSelector {
       const g = editSetup.maskData[i + 1];
       const b = editSetup.maskData[i + 2];
       if (r > 0 && g > 0 && b > 0) {
-        if (undo || restoreBackGround && basePixels) {
+        if (undo || restoreBackground && basePixels) {
           pixelRemovingTools.restorePixel(editSetup.shownPixels, basePixels, i);
         } else {
           transparentBackground ? 
             pixelRemovingTools.turnPixelTransparent(editSetup.shownPixels, i) :
             pixelRemovingTools.turnPixelBlack(editSetup.shownPixels, i);
-
-            editSetup.shownPixels[i + 3] = 0;
         }
       }
     }
