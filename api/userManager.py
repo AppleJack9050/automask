@@ -33,7 +33,7 @@ class UserManager():
             """)
             c.commit()        
 
-    def create_user(self, user_name, password):
+    def create_user(self, user_name: str, password: str) -> dict | None:
         if not self.__user_exists(user_name):
             timestamp = time.time()
             token = self.__generate_jwt_token({'bearer':user_name, 'start_time':timestamp})
@@ -67,37 +67,42 @@ class UserManager():
 
         return None
 
-    def update_user_name(self, old_user_name, new_user_name, password):
-        if self.__verifiy_user_password(password, self.__fetch_password(old_user_name)):
+    def update_user_name(self, old_user_name: str, new_username: str, password: str) -> dict | None:
+        if self.__verifiy_user_password(password, self.__fetch_password(old_user_name)) and  not self.__user_exists(new_username):
+            timestamp = time.time()
+            token = self.__generate_jwt_token({'bearer':new_username, 'start_time':timestamp})
             with sqlite3.connect(USERS_DB) as c:
                 q = c.execute(    
                     """
                         UPDATE users
-                        SET user_name = ?
+                        SET user_name = ?, current_token = ?, token_timestamp = ?
                         WHERE user_name = ?
                     """,
-                    (new_user_name, old_user_name))
+                    (new_username, token, timestamp, old_user_name))
                 c.commit()
+            return {"username":new_username, "token":token}
         else:
             raise PermissionError("Invalid credentials")
 
-    def update_user_password(self, user_name, old_password, new_password):
+    def update_user_password(self, user_name: str, old_password: str, new_password: str) -> dict | None:
         if self.__verifiy_user_password(old_password, self.__fetch_password(user_name)):
             new_password = self.__hash_user_password(new_password)
-
+            timestamp = time.time()
+            token = self.__generate_jwt_token({'bearer':user_name, 'start_time':timestamp})
             with sqlite3.connect(USERS_DB) as c:
                 q = c.execute(    
                     """
                         UPDATE users
-                        SET stored_password = ?
+                        SET stored_password = ?, current_token = ?, token_timestamp = ?
                         WHERE user_name = ?
                     """,
-                    (new_password, user_name))
+                    (new_password, token, timestamp, user_name))
                 c.commit()
+            return {"username":user_name, "token":token}
         else:
             raise PermissionError("Invalid credentials")
 
-    def delete_user(self, user_name, password):
+    def delete_user(self, user_name: str, password: str) -> None:
         if self.__verifiy_user_password(password, self.__fetch_password(user_name)):
             with sqlite3.connect(USERS_DB) as c:
                 q = c.execute(    
@@ -111,10 +116,10 @@ class UserManager():
         else:
             raise PermissionError("Invalid credentials")
 
-    def __hash_user_password(self, password):
+    def __hash_user_password(self, password: str) -> str:
         return self.password_hash.hash(password)
 
-    def __verifiy_user_password(self, password, stored_password) -> bool | None:
+    def __verifiy_user_password(self, password: str, stored_password: str) -> bool | None:
         return self.password_hash.verify(password, stored_password)
 
     def __user_exists(self, user_name) -> bool | None:
@@ -129,7 +134,7 @@ class UserManager():
 
             return len(q) > 0
     
-    def __fetch_password(self, user_name) -> str | None:
+    def __fetch_password(self, user_name: str) -> str | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """
@@ -143,7 +148,7 @@ class UserManager():
 
             return q[0]
 
-    def __fetch_token(self, user_name) -> tuple | None:
+    def __fetch_token(self, user_name: str) -> tuple | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """
@@ -157,7 +162,7 @@ class UserManager():
 
             return q
 
-    def update_token(self, user_name):
+    def update_token(self, user_name: str):
         timestamp = time.time()
         token = self.__generate_jwt_token({'bearer':user_name, 'start_time':timestamp})
 
@@ -175,10 +180,10 @@ class UserManager():
 
             return token
 
-    def __generate_jwt_token(self, encoding_info):
+    def __generate_jwt_token(self, encoding_info: dict) -> dict:
         return jwt.encode(encoding_info, SECRET_KEY, algorithm=self.algorithm)
 
-    def authenticate_user(self, user_name, password) -> dict | None:
+    def authenticate_user(self, user_name: str, password: str) -> dict | None:
         if self.__user_exists(user_name):
             stored_password = self.__fetch_password(user_name)
             if self.__verifiy_user_password(password, stored_password):
@@ -186,10 +191,10 @@ class UserManager():
 
         return None
 
-    def return_user_token(self, user_name) -> str | None:
+    def return_user_token(self, user_name: str) -> str | None:
         return self.update_token(user_name)
 
-    def verify_user_token(self, token) -> str | None:
+    def verify_user_token(self, token: str) -> str | None:
         payload = jwt.decode(token, SECRET_KEY, self.algorithm)
       
         user_name = payload.get('bearer')
@@ -200,7 +205,7 @@ class UserManager():
 
         return None
 
-    def get_user_id(self, username) -> str | None:
+    def get_user_id(self, username: str) -> str | None:
         with sqlite3.connect(USERS_DB) as c:
             q = c.execute(    
                 """

@@ -8,8 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from pathlib import Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
 from userManager import UserManager
-from pydantic import BaseModel # type: ignore
 from jwt.exceptions import DecodeError # type: ignore
+from requestTypes import LoginRequest, UpdateUserRequest, DownloadRequest, ShowFilesRequest, ProcessRequest, DeleteFile, ShareFileRequest
 
 app = FastAPI()
 app.add_middleware(
@@ -28,31 +28,6 @@ producer = Producer()
 user_manager = UserManager()
 security = HTTPBearer()
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-class UpdateUserRequest(BaseModel):
-    username: str
-    password: str
-    new_password: str
-    new_username: str
-
-class DownloadRequest(BaseModel):
-    files: List[str]
-    name: str
-
-class ShowFilesRequest(BaseModel):
-    file_name: str
-    saved: bool
-
-class ProcessRequest(BaseModel):
-    saved: bool
-    files: List[str]
-    prompt: str
-    positive: bool
-    highlight: bool
-
 @app.get("/files")
 async def get_files(credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = authenticate_token(credentials)
@@ -70,12 +45,12 @@ async def put_files(files: List[UploadFile] = File(...), credentials: HTTPAuthor
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
 
-@app.delete("/files/{file_name}")
-async def delete_file(file_name: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+@app.post("/delete-file")
+async def delete_file(request: DeleteFile, credentials: HTTPAuthorizationCredentials = Depends(security)):
     user = authenticate_token(credentials)
     if user:
-        file_handler.delete_file(user_manager.get_user_id(user),file_name)
-        return JSONResponse({"message": "Deleted Successfully"}, status_code=204)
+        file_handler.delete_file(user_manager.get_user_id(user), request.file_name, request.file_status)
+        return JSONResponse({"message": "Deleted Successfully"}, status_code=200)
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
 
@@ -122,7 +97,6 @@ async def process_files(request: ProcessRequest, credentials: HTTPAuthorizationC
     if user:
         try:
             user_id = user_manager.get_user_id(user)
-
             stored_files = list(
                 map(
                     lambda file: file_handler.file_table.get_stored_name(file, user_id),
@@ -193,7 +167,7 @@ async def create_user(request: LoginRequest):
     except Exception as e:
         JSONResponse({"error": "User Create Failed"}, status_code=500)
 
-@app.delete("/delete-user")
+@app.post("/delete-user")
 async def delete_user(request: LoginRequest):
     try:
         user_manager.delete_user(request.username, request.password)
@@ -204,16 +178,18 @@ async def delete_user(request: LoginRequest):
 @app.put("/update-username")
 async def update_username(request: UpdateUserRequest):
     try:
-        user_manager.update_user_name(request.username, request.newUsername, request.password)
-        JSONResponse({"data": "Update Success"}, status_code=204)
+        user_info = user_manager.update_user_name(request.username, request.newUsername, request.password)
+        if user_info:
+            return {"data": user_info}
     except Exception as e:
         JSONResponse({"error": "Update Failed"}, status_code=500)
 
 @app.put("/update-password")
 async def update_password(request: UpdateUserRequest):
     try:
-        user_manager.update_user_name(request.username, request.password, request.newPassword)
-        JSONResponse({"data": "Update Success"}, status_code=204)
+        user_info = user_manager.update_user_password(request.username, request.password, request.newPassword)
+        if user_info:
+            return {"data": user_info}
     except Exception as e:
         JSONResponse({"error": "Update Failed"}, status_code=500)
 
@@ -255,6 +231,10 @@ async def download_tar(request: DownloadRequest, credentials: HTTPAuthorizationC
             return JSONResponse({"error":"Error Generating Tar"}, status_code=500)     
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
+
+@app.post("/share-files")
+async def share_files(request: ShareFileRequest,  credentials: HTTPAuthorizationCredentials = Depends(security)):
+    pass
 
 def authenticate_token(credentials) -> str | None:
     try:

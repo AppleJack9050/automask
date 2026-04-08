@@ -124,6 +124,21 @@ async function downloadTar(files, name) {
     });
     return response;
 }
+async function deleteFile(file, fileStatus) {
+  const response = await apiClient.post(
+    `/delete-file`,
+    {
+      file_name: file,
+      file_status: fileStatus,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+    return response;
+}
 export default {
     getFiles,
     getFile,
@@ -134,5 +149,6 @@ export default {
     downloadImage,
     downloadZip,
     downloadTar,
-    showUploadFile
+    showUploadFile,
+    deleteFile
   }

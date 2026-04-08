@@ -183,36 +183,53 @@ class FileHandler:
                 lambda stored_name: self.file_table.get_actual_name(stored_name, user),
                 os.listdir(os.path.join(self.saved_directory, user))
         ))
-        files_being_processed = producer.check_queue(user)
 
-        for file in files_being_processed:
-            if file in unprocessed_files:
+        files_being_processed = []
+
+        processed_files_set = set(processed_files)
+
+        for file in unprocessed_files.copy():
+            if file in processed_files_set:
                 unprocessed_files.remove(file)
+                processed_files.remove(file)
+                files_being_processed.append(file)
 
         return [
-            {"Unprocessed": unprocessed_files},
+            {"Uploaded": unprocessed_files},
             {"Processing": files_being_processed},
             {"Processed": processed_files},
             {"Saved": saved_files}
         ]
 
-    def delete_file(self, user: str, file_name):
-        stored_file_name = self.file_table.get_stored_name(file_name)
-        stored_file_stem = Path(stored_file_name).stem
+    def delete_file(self, user: str, file_name: str, file_status: str):
+        stored_file_name = self.file_table.get_stored_name(file_name, user)
+
+        match file_status:
+            case "Uploaded":
+                uploaded_file_path = os.path.join(self.upload_directory, user, stored_file_name)
+                if os.path.exists(uploaded_file_path):
+                    os.remove(uploaded_file_path)
+                return
+
+            case "Processed":
+                stored_file_stem = Path(stored_file_name).stem
+                proccessed_file_path = os.path.join(self.processed_directory, user, stored_file_stem)
+                if os.path.exists(proccessed_file_path):
+                    shutil.rmtree(proccessed_file_path, ignore_errors=True)
+                return
+
+            case "Saved":
+                saved_file_path = os.path.join(self.saved_directory, user, stored_file_name)
+                if os.path.exists(saved_file_path):
+                    os.remove(saved_file_path)
+                return
     
-        unproccessed_file_path = os.path.join(self.upload_directory, user, stored_file_name)
-        proccessed_file_path = os.path.join(self.processed_directory, user, stored_file_stem)
-        saved_file_path = os.path.join(self.saved_directory, user, stored_file_name)
-
-        if os.path.exists(unproccessed_file_path):
-            os.remove(unproccessed_file_path)
-
-        if os.path.exists(proccessed_file_path):
-            os.remove(proccessed_file_path)
-
-        if os.path.exists(saved_file_path):
-            os.remove(saved_file_path)
-        return
+            case _:
+                stored_file_stem = Path(stored_file_name).stem
+                proccessed_file_path = os.path.join(self.processed_directory, user, stored_file_stem)
+                if os.path.exists(uploaded_file_path) and os.path.exists(proccessed_file_path):
+                    shutil.rmtree(proccessed_file_path, ignore_errors=True)
+                return
 
     def download_zip_file(self, user: str, files: List[str]):
         return self.__create_zip_file(self.__get_files_and_stored_path(user, files))
@@ -239,7 +256,7 @@ class FileHandler:
         buffer.seek(0)
         yield buffer.getvalue()
 
-    def __get_files_and_stored_path(self, user, files: List[str]):
+    def __get_files_and_stored_path(self, user: str, files: List[str]):
         return list(
             map(
                 lambda file: 
@@ -254,5 +271,16 @@ class FileHandler:
                 files
         ))
 
-    def share_file(self, file_owner, file_recipiant, file_name):
+    def delete_all_user_files(self, user: str):
+        self.file_table.delete_user_files()
+        uploaded_file_path = os.path.join(self.upload_directory, user)
+        processed_file_path = os.path.join(self.processed_directory, user)
+        saved_file_path = os.path.join(self.saved_directory, user)
+
+        for path in [uploaded_file_path, processed_file_path, saved_file_path]:
+            if os.path.exists(path):
+                shutil.rmtree(path, ignore_errors=True)
+
+
+    def share_file(self, file_owner: str, file_recipiant: str, file_name: str):
         pass

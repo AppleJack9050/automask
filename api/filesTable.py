@@ -25,7 +25,7 @@ class FilesTable:
             """)
             c.commit()
 
-    def insert_name(self, file_name, user) -> str | None:
+    def insert_name(self, file_name: str, user: str) -> str | None:
         count = self.__count_file_duplicates(file_name, user)
 
         file_extension = ""
@@ -55,7 +55,7 @@ class FilesTable:
             c.commit()
             return stored_file_name
 
-    def get_stored_name(self, file_name, user) -> str | None:
+    def get_stored_name(self, file_name: str, user: str) -> str | None:
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    
                 """
@@ -69,7 +69,7 @@ class FilesTable:
             return ""
         return q[0]
         
-    def get_actual_name(self, stored_file_name, user) -> str | None:
+    def get_actual_name(self, stored_file_name: str, user: str) -> str | None:
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    
                 """
@@ -84,7 +84,7 @@ class FilesTable:
             return None
         return q[0]
 
-    def delete_name(self, file_name, user):
+    def delete_name(self, file_name: str, user: str):
         with sqlite3.connect(FILES_DB) as c:
             c.execute(    
                 """
@@ -95,7 +95,7 @@ class FilesTable:
                 (user, file_name)).fetchone()
             c.commit()
 
-    def __count_file_duplicates(self, file_name, user_id) -> int:
+    def __count_file_duplicates(self, file_name: str, user_id: str) -> int:
         name, _, ext = file_name.rpartition('.')
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    
@@ -109,3 +109,14 @@ class FilesTable:
         stem = re.escape(name)
         exact_pattern = re.compile(rf"^{stem}( \(\d+\))?.{re.escape(ext)}$")
         return sum(1 for (fname,) in q if exact_pattern.match(fname))
+
+    def delete_user_files(self, user_id: str):
+        with sqlite3.connect(FILES_DB) as c:
+            q = c.execute(    
+                """
+                    DELETE
+                    FROM files
+                    WHERE user_id = ?
+                """,
+                (user_id,)).fetchall()
+            c.commit()

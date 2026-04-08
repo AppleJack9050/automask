@@ -1,4 +1,4 @@
-import HelloWorld from '../HelloWorld.vue'
+import HelloWorld from '../modals/HelloWorld.vue'
 
 describe('HelloWorld', () => {
   it('playground', () => {

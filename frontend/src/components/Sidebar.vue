@@ -1,91 +1,66 @@
 <script setup>
+import { computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userroles'
+import UserModal from './modals/UserModal.vue';
+import { Modal } from 'bootstrap';
 const router = useRouter();
+const userStore = useUserStore();
 
-const routes = router.getRoutes();
+const routes = computed(() => 
+  router.getRoutes().filter(route => {
+    if (route.meta.requiresAuth) return userStore.auth.loggedIn
+    return route.name && route.path !== '/'
+  })
+);
+
+function openUserModal() {
+  const el = document.getElementById('userModal');
+  const modal = Modal.getOrCreateInstance(el);
+  modal.show();
+}
 </script>
 
 <template>
-  <div>
-    <aside>
-      <div>
-        <h2>Automask</h2>
+  <div class="d-flex min-vh-100">
+    <aside class="d-flex flex-column bg-dark text-white" style="width: 240px; min-width: 240px;">
+      <div class="px-4 py-4 border-bottom border-secondary">
+        <h5 class="fw-bold text-white mb-0 letter-spacing-1">Automask</h5>
       </div>
-      <nav class="sidebar-nav">
-          <router-link
-            v-for="route in routes"
-            :key="route.name"
-            :to="route.path"
-            class="nav-item"
-            active-class="active"
-          >
-            <span class="label">{{ route.name }}</span>
-          </router-link>
+      <nav class="flex-grow-1 py-3">
+        <router-link
+          v-for="route in routes"
+          :key="route.name"
+          :to="route.path"
+          class="d-flex align-items-center px-4 py-2 text-decoration-none text-secondary rounded-2 mx-2 mb-1"
+          active-class="bg-primary text-white"
+        >
+          <span class="small fw-medium">{{ route.name }}</span>
+        </router-link>
       </nav>
+      <div class="px-4 py-3 border-top border-secondary">
+        <div v-if="userStore.auth.loggedIn" class="d-flex align-items-center gap-2">
+          <span
+            class="badge bg-success rounded-pill"
+            style="width: 8px; height: 8px; padding: 0;"
+          >
+          </span>
+          <span
+            class="small text-secondary "
+            @click="openUserModal"
+            style="cursor: pointer;"
+          >
+            {{ userStore.auth.user }}
+          </span>
+        </div>
+        <div v-else>
+          <span class="small text-secondary fst-italic">Not signed in</span>
+        </div>
+      </div>
     </aside>
-    <main class="main-content">
+    <user-modal :username="userStore.auth.user"></user-modal>
+    <main class="flex-grow-1 bg-light">
+      <slot />
     </main>
   </div>
 </template>
-
-<style scoped>
-.app-container {
-  display: flex;
-  height: 100vh;
-  font-family: 'Inter', sans-serif;
-}
-
-/* Sidebar styling */
-.sidebar {
-  width: 200px;
-  background-color: #ffffff;
-  border-right: 1px solid #ddd;
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.sidebar-header {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.25rem;
-  color: #333;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.nav-item:hover {
-  background-color: #f0f0f5;
-  color: #5c7cfa;
-}
-
-.nav-item.active {
-  font-weight: bold;
-  color: #5c7cfa;
-  background-color: #e6edff;
-}
-
-.icon {
-  margin-right: 0.5rem;
-}
-
-.main-content {
-  flex: 1;
-  padding: 1rem;
-  background-color: #f4f4f9;
-  overflow-y: auto;
-}
-</style>

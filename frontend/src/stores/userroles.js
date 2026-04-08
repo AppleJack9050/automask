@@ -13,6 +13,10 @@ export const useUserStore = defineStore('roles', {
   }),
   actions: {
     setAuth(token, user) {
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
       this.auth.loggedIn = true;
       this.auth.token = token;
       this.auth.user = user;
@@ -27,9 +31,6 @@ export const useUserStore = defineStore('roles', {
         const response = await userservice.loginUser(userName, password);
         const { token, username } = response.data;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(username));
-
         this.setAuth(token, username);
       } catch (error) {
         notify({
@@ -43,9 +44,6 @@ export const useUserStore = defineStore('roles', {
       try {
         const response = await userservice.createUser(email, password);
         const { token, user } = response.data;
-
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
 
         this.setAuth(token, user);
       } catch (error) {

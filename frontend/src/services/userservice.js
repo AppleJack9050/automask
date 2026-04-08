@@ -32,26 +32,29 @@ async function createUser(userName, password) {
 }
 async function updateUserPassword(username, oldPassword, newPassword) {
   const response = await apiClient.put(
+    'update-password',
     {
       username:username,
       password:oldPassword,
       newPassword:newPassword,
-      newUsername:null
+      newUsername:""
   });
   return response.data;
 }
 async function updateUserName(username, newUsername, password) {
   const response = await apiClient.put(
+    'update-username',
     {
       username:username,
       password:password,
-      newPassword:null,
+      newPassword:"",
       newUsername:newUsername
   });
   return response.data;
 }
 async function deleteUser(username, password) {
-  const response = await apiClient.put(
+  const response = await apiClient.post(
+    'delete-user',
     {
       username:username,
       password:password

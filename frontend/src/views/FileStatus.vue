@@ -24,9 +24,9 @@
               <span
                 class="badge rounded-pill"
                 :class="{
-                  'bg-warning text-dark': status === 'Unprocessed',
+                  'bg-warning text-dark': status === 'Uploaded',
                   'bg-success': status === 'Saved',
-                  'bg-secondary': status !== 'Unprocessed' && status !== 'Saved'
+                  'bg-secondary': status !== 'Uploaded' && status !== 'Saved'
                 }"
               >
                 {{ fileList.length }}
@@ -49,7 +49,7 @@
             class="collapse show"
           >
             <div
-              v-if="status === 'Unprocessed' || status === 'Saved'"
+              v-if="status === 'Uploaded' || status === 'Saved'"
               class="px-4 py-2 bg-light border-bottom d-flex flex-wrap gap-2 align-items-center"
             >
               <button
@@ -82,8 +82,6 @@
                 </button>
               </template>
             </div>
-
-            <!-- File List -->
             <ul class="list-group list-group-flush">
               <li
                 v-for="file in fileList"
@@ -95,7 +93,7 @@
                 </span>
 
                 <div class="d-flex align-items-center gap-3 flex-shrink-0">
-                  <div v-if="status === 'Unprocessed'">
+                  <div v-if="status === 'Uploaded'">
                     <input
                       v-model="selectedFiles"
                       type="checkbox"
@@ -136,9 +134,9 @@
 import Loading from "@/components/Loading.vue";
 import fileService from "@/services/fileservice"
 import 'bootstrap/dist/js/bootstrap.bundle.min';
-import PromptModal from "@/components/PromptModal.vue";
+import PromptModal from "@/components/modals/PromptModal.vue";
 import { Modal } from 'bootstrap';
-import DownloadModal from "@/components/DownloadModal.vue";
+import DownloadModal from "@/components/modals/DownloadModal.vue";
 import DropdownMenu from "@/components/DropdownMenu.vue";
 
 export default {
@@ -220,7 +218,7 @@ export default {
             title:'Success',
             text:'File Downlaoded Successfully',
             type:'success'
-          })
+          });
         } catch (e) {
           this.$notify({
             title:'Error',
@@ -248,13 +246,13 @@ export default {
             title:'Success',
             text:'File Downlaoded Successfully',
             type:'success'
-          })
+          });
         } catch (e) {
           this.$notify({
             title:'Error',
             text:e,
             type:'error'
-          })
+          });
         }
     },
     editFile(file, saved) {
@@ -262,27 +260,26 @@ export default {
     },
     async processFiles(prompt, positive, highlight) {
       try {
-        if (this.selectedFilesSaved) {
+        if (this.filesSelectedSaved) {
           await fileService.processFiles(
           this.selectedFiles.length === 0 ?
             this.files
               .filter(f => f.hasOwnProperty('Saved'))
               .map(f => f.Saved)
               .flat() :
-            this.selectedFiles,
+            this.selectedFilesSaved,
             prompt,
             positive,
             highlight,
             true
           );          
         } 
-
         if (this.filesSelectedUpload) {
           await fileService.processFiles(
           this.selectedFiles.length === 0 ?
             this.files
-              .filter(f => f.hasOwnProperty('Unprocessed'))
-              .map(f => f.Unprocessed)
+              .filter(f => f.hasOwnProperty('Uploaded'))
+              .map(f => f.Uploaded)
               .flat() :
             this.selectedFiles,
           prompt,
@@ -339,24 +336,38 @@ export default {
       const modal = Modal.getOrCreateInstance(el);
       modal.hide();
     },
-    deleteFile(file, section) {
+    async deleteFile(file, status) {
+      try {
+        await fileService.deleteFile(file, status);
+        this.$notify({
+          title:'Success',
+          text:'Files Processed Successfully',
+          type:'success'
+        });
+      } catch (error) {
+        this.$notify({
+          title:'Error',
+          text:error,
+          type:'error'
+        });
+      }
     },
     viewFile(file) {
       this.$router.push({ name: 'Edit', params: { imageTitle:file, saved: false, uploadOnly: true } });
     },
-    handleAction(action, item, section) {
+    handleAction(action, item, status) {
       switch (action) {
         case 'View':
-          return section === 'Unprocessed' ?
+          return status === 'Uploaded' ?
             this.viewFile(
               item
             ) :
             this.editFile(
               item,
-              section === 'Saved'
+              status === 'Saved'
             );
         case 'Delete':
-          this.deleteFile(item, section);
+          this.deleteFile(item, status);
       }
     }
   },

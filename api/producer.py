@@ -35,18 +35,6 @@ class Producer():
         self.channel = connection.channel()
         self.channel.queue_declare(queue=QUEUE, durable=True)
 
-    def check_queue(self, user: str) -> list:
-        files = []
-        while True:
-            method, _, body = self.channel.basic_get(queue=QUEUE, auto_ack=False)
-            if method is None:
-                break
-            body = json.loads(body)
-            if body["user_id"] == user:
-                files.append(body["files"])
-            self.channel.basic_nack(method.delivery_tag, requeue=True)
-        return reduce(lambda x, y: x + y, files, [])
-
     def create_file_queue(self, user: str, files: list, prompt: str, positive: bool, highlight: bool, saved: bool):
         message = {
             "user_id": user,

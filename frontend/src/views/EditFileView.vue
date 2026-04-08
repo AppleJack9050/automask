@@ -30,7 +30,7 @@
 
 <script>
 import EditFile from '@/components/EditFile.vue';
-import SaveModal from '@/components/SaveModal.vue';
+import SaveModal from '@/components/modals/SaveModal.vue';
 import fileService from '@/services/fileservice';
 import ViewFile from '@/components/ViewFile.vue';
 import { Modal } from 'bootstrap';
