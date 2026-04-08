@@ -139,6 +139,21 @@ async function deleteFile(file, fileStatus) {
     });
     return response;
 }
+async function shareFile(recipient, file) {
+  const response = await apiClient.post(
+    `/share-file`,
+    {
+      file: file,
+      file_recipient: recipient,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+    return response;
+}
 export default {
     getFiles,
     getFile,
@@ -150,5 +165,6 @@ export default {
     downloadZip,
     downloadTar,
     showUploadFile,
-    deleteFile
+    deleteFile,
+    shareFile
   }

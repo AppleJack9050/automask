@@ -166,6 +166,7 @@
             type="button"
             class="btn btn-secondary"
             data-bs-dismiss="modal"
+            :disabled="!passwordsMatch"
           >
             Close
           </button>

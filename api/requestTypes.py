@@ -32,3 +32,4 @@ class DeleteFile(BaseModel):
 
 class ShareFileRequest(BaseModel):
     file: str
+    file_recipient: str

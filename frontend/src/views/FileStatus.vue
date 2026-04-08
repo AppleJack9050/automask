@@ -127,6 +127,7 @@
     </div>
     <prompt-modal @process="processFiles" :saved="saved"/>
     <download-modal @download="handleDownload" :saved="saved"/>
+    <share-modal :file="shareFile" />
   </div>
 </template>
 
@@ -138,13 +139,15 @@ import PromptModal from "@/components/modals/PromptModal.vue";
 import { Modal } from 'bootstrap';
 import DownloadModal from "@/components/modals/DownloadModal.vue";
 import DropdownMenu from "@/components/DropdownMenu.vue";
+import ShareModal from "@/components/modals/ShareModal.vue";
 
 export default {
   components:{
     Loading,
     PromptModal,
     DownloadModal,
-    DropdownMenu
+    DropdownMenu,
+    ShareModal
   },
   data() {
     return {
@@ -153,7 +156,8 @@ export default {
       saved: false,
       selectedFiles: [],
       selectedFilesSaved: [],
-      options: ["View", "Delete"]
+      options: ["View", "Delete", "Share"],
+      shareFile: null
     }
   },
   computed: {
@@ -368,8 +372,18 @@ export default {
             );
         case 'Delete':
           this.deleteFile(item, status);
+          break;
+        case 'Share':
+          this.openShareModal(item);
+          break;
       }
-    }
+    },
+    openShareModal(file) {
+      this.shareFile = file;
+      const el = document.getElementById('shareModal');
+      const modal = Modal.getOrCreateInstance(el);
+      modal.show();
+    },
   },
   created() {
     this.loadFiles();

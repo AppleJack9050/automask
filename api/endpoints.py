@@ -161,7 +161,7 @@ async def create_user(request: LoginRequest):
     try:
         user_info = user_manager.create_user(request.username, request.password)
         if user_info:
-            return {"data": user_info}
+            return JSONResponse({"data":user_info}, status_code=200)
         else:
             JSONResponse({"error": "Username already in use"}, status_code=409)
     except Exception as e:
@@ -232,9 +232,22 @@ async def download_tar(request: DownloadRequest, credentials: HTTPAuthorizationC
     else:
         return JSONResponse({"error":"Access denied"}, status_code=401)
 
-@app.post("/share-files")
-async def share_files(request: ShareFileRequest,  credentials: HTTPAuthorizationCredentials = Depends(security)):
-    pass
+@app.post("/share-file")
+async def share_files(request: ShareFileRequest,  credentials: HTTPAuthorizationCredentials = Depends(security)) -> JSONResponse:
+    user = authenticate_token(credentials)
+    if user:
+        try:
+            recipient_id = user_manager.get_user_id(request.file_recipient)
+            if recipient_id:
+                file_handler.share_file(user_manager.get_user_id(user), recipient_id, request.file)
+                return JSONResponse({"error":"Move Done"}, status_code=200)
+            else:
+                return JSONResponse({"error":"Recipient Not Found"}, status_code=404)
+
+        except Exception as e:
+            return JSONResponse({"error":"Error Sharing File"}, status_code=500)     
+    else:
+        return JSONResponse({"error":"Access denied"}, status_code=401)
 
 def authenticate_token(credentials) -> str | None:
     try:

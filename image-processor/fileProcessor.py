@@ -39,7 +39,6 @@ class FileProcessor():
 
         self.sam2_model = self.__build_sam2()
         self.dino = self.__build_dino()
-#        self.sam3_model = self.__build_sam3()
 
     def __get_device_for_SAM(self) -> str:
         device = ""
@@ -153,15 +152,6 @@ class FileProcessor():
         sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=self.device, apply_postprocessing=False)
         os.chdir(cwd)
         return sam2_model
-
-    def __build_sam3(self):
-#        model = build_sam3_image_model(bpe_path=f"{SAM3_FULL_PATH}/assets/bpe_simple_vocab_16e6.txt.gz")
-#        return Sam3Processor(model, confidence_threshold=0.5)
-        pass
-
-    def __generate_sam3_masking(self, prompt, image):
-        """Uses SAM3 to use the text prompt and returns the result"""
-        pass
 
     def __build_dino(self):
         return load_model(

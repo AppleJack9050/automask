@@ -25,7 +25,7 @@ class FilesTable:
             """)
             c.commit()
 
-    def insert_name(self, file_name: str, user: str) -> str | None:
+    def insert_name(self, file_name: str, user: str, ) -> str | None:
         count = self.__count_file_duplicates(file_name, user)
 
         file_extension = ""
@@ -119,4 +119,19 @@ class FilesTable:
                     WHERE user_id = ?
                 """,
                 (user_id,)).fetchall()
+            c.commit()
+
+    def share_file(self, file_recipient_id: str, file_name: str, stored_file_name: str):
+        with sqlite3.connect(FILES_DB) as c:
+            c.execute(
+                """
+                    INSERT INTO files (id, user_id, file_name, stored_file_name)
+                    VALUES (?, ?, ?, ?)
+                """,
+                (
+                    str(uuid4()),
+                    file_recipient_id,
+                    file_name,
+                    stored_file_name
+                ))
             c.commit()

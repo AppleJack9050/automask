@@ -10,9 +10,6 @@ RUN groupadd -r apiuser && useradd -r -g apiuser apiuser
 RUN python3 -m pip install -r requirements.txt
 RUN mkdir -p /database /uploads /processed /saved
 RUN chown -R apiuser:apiuser  . /database /uploads /processed /saved
-RUN export SECRET_KEY=$(openssl rand -hex 32)
-
-#RUN echo "SECRET_KEY=$(openssl rand -hex 32)" >> /etc/environment
 USER apiuser
 
 EXPOSE 80/tcp

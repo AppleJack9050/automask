@@ -11,12 +11,14 @@
 - [feature] undo/redo
 - [upgrade] rabbitmq
 - [upgrade] file system upgrade
-- [feature] add users
+- [feature] users
 - [feature] download as folders
 - [feature] restore option while editing
 - [feature] view uploaded file
+- [feature] CRUD users
+- [feature] delete files
+- [feature] share files among users
 
 ### future fixes
-- delete files
 - tooltips
 - kubernetes

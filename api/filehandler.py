@@ -9,6 +9,7 @@ from io import BytesIO
 from filesTable import FilesTable
 import io
 from typing import List
+from producer import Producer
 
 class FileHandler:
     def __init__(self, directory: str, processed_directory: str):
@@ -20,8 +21,9 @@ class FileHandler:
     def handle_zip(self, user: str, zip_file, file_name: str):
         file_name = self.file_table.insert_name(file_name, user)
         temp_directory = os.path.join(self.upload_directory, "_temp_extract")
+        os.makedirs(temp_directory, exist_ok=True)
         zip_path = os.path.join(temp_directory, file_name)
-
+        
         with open(zip_path, "wb") as f:
             f.write(zip_file.file.read())
 
@@ -67,7 +69,7 @@ class FileHandler:
 
         shutil.rmtree(temp_directory)
 
-    async def handle_single_file(self, user: str, file, file_name):
+    async def handle_single_file(self, user: str, file: str, file_name: str):
         file_name = self.file_table.insert_name(file_name, user)
         file_path = os.path.join(self.upload_directory, user, file_name)
         with open(file_path, "wb") as out_file:
@@ -142,7 +144,7 @@ class FileHandler:
                         
         return masks
 
-    def save(self, user: str, file, file_name, file_type):
+    def save(self, user: str, file: str, file_name: str, file_type: str):
         stored_file_name = self.file_table.get_stored_name(file_name, user)
         if not os.path.exists(os.path.join(self.saved_directory, user)):
             os.makedirs(os.path.join(self.saved_directory, user))
@@ -162,7 +164,7 @@ class FileHandler:
         
         return f'data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode("utf-8")}'
 
-    def list_files(self, user: str, producer) -> list:
+    def list_files(self, user: str, producer: Producer) -> list:
         os.makedirs(os.path.join(self.upload_directory, user), exist_ok=True)
         os.makedirs(os.path.join(self.processed_directory, user), exist_ok=True)
         os.makedirs(os.path.join(self.saved_directory, user), exist_ok=True)
@@ -281,6 +283,23 @@ class FileHandler:
             if os.path.exists(path):
                 shutil.rmtree(path, ignore_errors=True)
 
+    def share_file(self, file_owner: str, file_recipient: str, file_name: str):
+        stored_file_name = self.file_table.get_stored_name(file_name, file_owner)
 
-    def share_file(self, file_owner: str, file_recipiant: str, file_name: str):
-        pass
+        if self.file_table.get_stored_name(file_name, file_recipient):
+            return
+
+        upload_path = str(Path(self.upload_directory) / file_owner / stored_file_name)
+        processed_path = str(Path(self.processed_directory) / file_owner / Path(stored_file_name).stem)
+        saved_path = str(Path(self.saved_directory) / file_owner / stored_file_name)
+
+        if os.path.exists(upload_path):        
+            shutil.copy(upload_path, str(Path(self.upload_directory) / file_recipient / stored_file_name))
+        
+        if os.path.exists(processed_path):
+            shutil.copytree(processed_path, str(Path(self.processed_directory) / file_recipient / Path(stored_file_name).stem))
+
+        if os.path.exists(saved_path):
+            shutil.copy(saved_path, str(Path(self.saved_directory) / file_recipient / stored_file_name))
+
+        self.file_table.share_file(file_recipient, file_name, stored_file_name)
