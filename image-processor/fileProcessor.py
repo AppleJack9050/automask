@@ -54,6 +54,7 @@ class FileProcessor():
         for file in files:
             if file.endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp')) and file in files:
                 self.file_q.put(file)
+                self.__make_processed_file_folder(user, file)
 
     def process_files_in_queue(self,  user: str, prompt: str, positive: bool, highlight: bool, saved: bool):
         print(f'Started Processing {datetime.now()}')
@@ -63,17 +64,19 @@ class FileProcessor():
             self.upload_directory = self.saved_directory
 
         while not self.file_q.empty():
-            self.__process_file(user, self.file_q.get(), prompt, positive, highlight, saved)
-            self.file_q.task_done()
-        
+            try:
+                self.__process_file(user, self.file_q.get(), prompt, positive, highlight, saved)
+            except Exception:
+                pass
+            finally:
+                self.file_q.task_done()
+    
         print(f'Finished Processing {datetime.now()}')
         self.upload_directory = original_upload_dir
 
     def __process_file(self, user: str, file: str, prompt: str, positive: bool, highlight: bool, saved: bool):
         logger.info(f'Processing {file}')
-        processed_dir = Path(self.processed_directory)
-        self.target_processed_folder = processed_dir / user / Path(file).stem
-        self.target_processed_folder.mkdir(parents=True, exist_ok=True)
+        self.target_processed_folder = Path(self.processed_directory) / user / Path(file).stem
         mask_dir = self.target_processed_folder / "masks"
         mask_dir = mask_dir.resolve()
         mask_dir.mkdir(parents=True, exist_ok=True)
@@ -199,3 +202,7 @@ class FileProcessor():
                 str(Path(self.upload_directory) / user / file),
                 str(self.target_processed_folder / "original" / f"{file}")
             )
+
+    def __make_processed_file_folder(self, user: str, file: str):
+        processed_dir = Path(self.processed_directory) / user / Path(file).stem
+        processed_dir.mkdir(parents=True, exist_ok=True)

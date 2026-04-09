@@ -5,9 +5,9 @@
       v-if="!loading"
     >
       <svg
-        :width="this.imageWidth"
-        :height="this.imageHeight"
-        :viewBox="`0 0 ${this.imageWidth} ${this.imageHeight}`"
+        :width="1200"
+        :height="1200"
+        :viewBox="`0 0 1200 1200`"
       >
         <image
           :href="`data:image/png;base64,${baseImage}`"
@@ -55,14 +55,6 @@ export default {
           try {
             this.touchUpCanvas = document.createElement('canvas');
             this.touchUpCtx = this.touchUpCanvas.getContext('2d');
-
-            this.shownImage = this.editedImage != null ? this.editedImage : this.baseImage;
-
-            const image = new Image();
-            image.src = `data:image/png;base64,${this.baseImage}`;
-            await image.decode();
-            this.imageWidth = image.width;
-            this.imageHeight = image.height;
           } catch (error) {
             this.$notify({
               title:'Error',

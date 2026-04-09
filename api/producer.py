@@ -31,25 +31,39 @@ class Producer():
             heartbeat=0
         )
 
-        connection = pika.BlockingConnection(connection_params)
-        self.channel = connection.channel()
-        self.channel.queue_declare(queue=QUEUE, durable=True)
+        while True:
+            try:
+                connection = pika.BlockingConnection(connection_params)
+                self.channel = connection.channel()
+                self.channel.queue_declare(queue=QUEUE, durable=True)
+                break
+            except pika.exceptions.AMQPConnectionError:
+                print("Retrying RabbitMQ...")
+                time.sleep(5)
+
 
     def create_file_queue(self, user: str, files: list, prompt: str, positive: bool, highlight: bool, saved: bool):
-        message = {
-            "user_id": user,
-            "files": files,
-            "prompt": prompt,
-            "positive": positive,
-            "highlight": highlight,
-            "saved": saved
-        }
+        max_files_per_message = 50
+        messages = []
 
-        message = json.dumps(message)
-        self.channel.basic_publish(
-            exchange="",
-            routing_key=QUEUE,
-            body=message,
-            properties=pika.BasicProperties(
-                delivery_mode=2
-        ))
+        for i in range(0, len(files), max_files_per_message):
+            chunk = files[i:i + max_files_per_message]
+            message = {
+                "user_id": user,
+                "files": chunk,
+                "prompt": prompt,
+                "positive": positive,
+                "highlight": highlight,
+                "saved": saved
+            }
+            messages.append(message)
+
+        for message in messages:
+            message = json.dumps(message)
+            self.channel.basic_publish(
+                exchange="",
+                routing_key=QUEUE,
+                body=message,
+                properties=pika.BasicProperties(
+                    delivery_mode=2
+            ))

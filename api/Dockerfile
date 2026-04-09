@@ -3,7 +3,7 @@ FROM python:3.10-slim
 WORKDIR /api
 COPY . /api
 
-RUN apt-get update && apt-get install -y curl openssl
+RUN apt-get update && apt-get install -y curl
 
 RUN groupadd -r apiuser && useradd -r -g apiuser apiuser
 

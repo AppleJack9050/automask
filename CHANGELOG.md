@@ -18,6 +18,7 @@
 - [feature] CRUD users
 - [feature] delete files
 - [feature] share files among users
+- [feature] extract nested zip/tars
 
 ### future fixes
 - tooltips

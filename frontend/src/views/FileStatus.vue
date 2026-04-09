@@ -31,17 +31,13 @@
               >
                 {{ fileList.length }}
               </span>
-              <h6 class="mb-0 fw-semibold">{{ status }}</h6>
             </div>
             <button
-              class="btn btn-sm btn-light border"
-              type="button"
+              class="btn btn-sm"
               data-bs-toggle="collapse"
               :data-bs-target="'#collapse-' + index + '-' + status"
-              aria-expanded="true"
-              :aria-controls="'collapse-' + index + '-' + status"
             >
-              ☰
+              {{ status }}
             </button>
           </div>
           <div
@@ -53,12 +49,6 @@
               class="px-4 py-2 bg-light border-bottom d-flex flex-wrap gap-2 align-items-center"
             >
               <button
-                class="btn btn-sm btn-outline-primary"
-                @click="openPromptModal(status === 'Saved')"
-              >
-                Process All
-              </button>
-              <button
                 v-if="filesSelectedUpload || filesSelectedSaved"
                 class="btn btn-sm btn-primary"
                 @click="openPromptModal()"
@@ -68,12 +58,6 @@
               <template v-if="status === 'Saved'">
                 <div class="vr mx-1"></div>
                 <button
-                  class="btn btn-sm btn-outline-success"
-                  @click="openDownloadModal()"
-                >
-                  Download All
-                </button>
-                <button
                   v-if="filesSelectedSaved"
                   class="btn btn-sm btn-success"
                   @click="openDownloadModal()"
@@ -81,6 +65,16 @@
                   Download Selected
                 </button>
               </template>
+              <div class="vr mx-1"></div>
+              <div class="d-flex align-items-center gap-2">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  :checked="status === 'Uploaded' ? allUploadedSelected(fileList) : allSavedSelected(fileList)"
+                  @change="status === 'Uploaded' ? toggleSelectAll(fileList, 'uploaded') : toggleSelectAll(fileList, 'saved')"
+                />
+                <label class="form-label small fw-medium text-secondary mb-0">Select All</label>
+              </div>
             </div>
             <ul class="list-group list-group-flush">
               <li
@@ -383,6 +377,21 @@ export default {
       const el = document.getElementById('shareModal');
       const modal = Modal.getOrCreateInstance(el);
       modal.show();
+    },
+    allUploadedSelected(items) {
+      return items.length > 0 && items.every(f => this.selectedFiles.includes(f));
+    },
+    allSavedSelected(fileList) {
+      return fileList.length > 0 && fileList.every(f => this.selectedFilesSaved.includes(f));
+    },
+    toggleSelectAll(items, section) {
+      if (section === 'uploaded') {
+        const allSelected = this.allUploadedSelected(items);
+        this.selectedFiles = allSelected ? [] : [...items];
+      } else {
+        const allSelected = this.allSavedSelected(items);
+        this.selectedFilesSaved = allSelected ? [] : [...items];
+      }
     },
   },
   created() {

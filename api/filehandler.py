@@ -10,6 +10,7 @@ from filesTable import FilesTable
 import io
 from typing import List
 from producer import Producer
+from threading import Thread
 
 class FileHandler:
     def __init__(self, directory: str, processed_directory: str):
@@ -49,13 +50,16 @@ class FileHandler:
         self.__extract_temp_directory(user, temp_directory)
 
     def __extract_temp_directory(self, user: str, temp_directory: str):
+        self.__extract_nested_archives(temp_directory)
         for root, _, files in os.walk(temp_directory):
             for file in files:
                 if file.startswith("._"):
                     continue
 
-                src_path = os.path.join(root, file)
+                if not file.endswith((".png", ".tiff", ".tif", ".jpeg", ".jpg")):
+                    continue
 
+                src_path = os.path.join(root, file)
                 new_name = self.file_table.insert_name(file_name=file, user=user)
                 base, ext = os.path.splitext(new_name)
                 dest_path = os.path.join(self.upload_directory, user, new_name)
@@ -69,6 +73,31 @@ class FileHandler:
 
         shutil.rmtree(temp_directory)
 
+    def __extract_nested_archives(self, directory: str):
+        found_archive = False
+
+        for root, _, files in os.walk(directory):
+            for file in files:
+                src_path = os.path.join(root, file)
+                nested_temp = os.path.join(root, f"_nested_{file}")
+
+                if file.endswith('.zip'):
+                    os.makedirs(nested_temp, exist_ok=True)
+                    with zipfile.ZipFile(src_path, "r") as z:
+                        z.extractall(nested_temp)
+                    os.remove(src_path)
+                    found_archive = True
+
+                elif file.endswith(('.tar', '.tar.gz', '.tgz', '.tar.bz2')):
+                    os.makedirs(nested_temp, exist_ok=True)
+                    with tarfile.open(src_path, "r:*") as t:
+                        t.extractall(nested_temp)
+                    os.remove(src_path)
+                    found_archive = True
+
+        if found_archive:
+            self.__extract_nested_archives(directory)
+
     async def handle_single_file(self, user: str, file: str, file_name: str):
         file_name = self.file_table.insert_name(file_name, user)
         file_path = os.path.join(self.upload_directory, user, file_name)
@@ -79,13 +108,12 @@ class FileHandler:
         saved_files = []
         for file in files:
             filename = file.filename
-            match filename:
-                case file_name if filename.endswith(".zip"):
-                    self.handle_zip(user, file, filename)
-                case file_name if filename.endswith(".tar.gz") or filename.endswith(".tar") or filename.endswith(".tgz"):
-                    self.handle_tar(user, file, filename)
-                case _:
-                    await self.handle_single_file(user, file, filename)
+            if filename.endswith(".zip"):
+                self.handle_zip(user, file, filename)
+            elif filename.endswith(('.tar', '.tar.gz', '.tgz', '.tar.bz2')):
+                self.handle_tar(user, file, filename)
+            elif filename.endswith(".png", ".tiff", ".tif", ".jpeg", ".jpg"):
+                await self.handle_single_file(user, file, filename)
 
         return saved_files
 

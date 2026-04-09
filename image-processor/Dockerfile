@@ -17,7 +17,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN groupadd -r apiuser && useradd -r -g apiuser apiuser -m
 
-
 #RUN mkdir /api/Grounded-SAM-2/sam2/checkpoints
 #RUN cd /image-processor/Grounded-SAM-2/sam2/checkpoints && bash /image-processor/Grounded-SAM-2/checkpoints/download_ckpts.sh
 RUN cd /image-processor/Grounded-SAM-2 && python3 -m pip install -e .
