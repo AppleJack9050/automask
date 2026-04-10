@@ -19,7 +19,6 @@
 - [feature] delete files
 - [feature] share files among users
 - [feature] extract nested zip/tars
-
+- [feature] tooltips
 ### future fixes
-- tooltips
 - kubernetes

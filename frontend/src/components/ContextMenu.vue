@@ -2,10 +2,10 @@
   <div class="dropdown position-absolute" :id="`context_menu_${id}`">
     <ul class="dropdown-menu show">
       <li>
-        <a class="dropdown-item" @click="selectObject">Select Object</a>
+        <a class="dropdown-item" @click="selectObject">Apply to Rest Of Image</a>
       </li>
       <li>
-        <a class="dropdown-item" @click="removeObject">Remove Object from Image</a>
+        <a class="dropdown-item" @click="removeObject">Apply to Highlighted Area Only</a>
       </li>
       <li>
         <a class="dropdown-item" @click="startTouchUp">Use Touch Up Tool</a>

@@ -25,6 +25,13 @@
         @close="closeModal"
       />
     </div>
+    <tool-tips 
+      infoType="edit"
+      :content="edit"
+    />
+    <tool-tips-button
+      infoType="edit"
+    />
   </div>
 </template>
 
@@ -34,12 +41,17 @@ import SaveModal from '@/components/modals/SaveModal.vue';
 import fileService from '@/services/fileservice';
 import ViewFile from '@/components/ViewFile.vue';
 import { Modal } from 'bootstrap';
+import ToolTipsButton from '@/components/tooltips/ToolTipsButton.vue';
+import ToolTips from '@/components/tooltips/ToolTips.vue';
+import tooltips from '@/components/tooltips/tooltips'
 
 export default {
   components: {
     EditFile,
     SaveModal,
-    ViewFile
+    ViewFile,
+    ToolTips,
+    ToolTipsButton
   },
   props: {  
     imageTitle:{
@@ -62,7 +74,8 @@ export default {
       editedImage: null,
       masks: [],
       imageToSave: null,
-      showModal: false
+      showModal: false,
+      edit:tooltips.edit
     }
   },
   computed:{

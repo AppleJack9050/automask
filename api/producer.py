@@ -1,11 +1,9 @@
-import os, json, sqlite3
-import pika, requests
-import uuid
+import os, json
+import pika
 import pika
 import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from functools import reduce
 import time
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")

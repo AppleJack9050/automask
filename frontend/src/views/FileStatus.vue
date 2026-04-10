@@ -122,6 +122,8 @@
     <prompt-modal @process="processFiles" :saved="saved"/>
     <download-modal @download="handleDownload" :saved="saved"/>
     <share-modal :file="shareFile" />
+    <tool-tips infoType="edit" :content="tooltipsContent" />
+    <tool-tips-button infoType="edit" />
   </div>
 </template>
 
@@ -134,6 +136,9 @@ import { Modal } from 'bootstrap';
 import DownloadModal from "@/components/modals/DownloadModal.vue";
 import DropdownMenu from "@/components/DropdownMenu.vue";
 import ShareModal from "@/components/modals/ShareModal.vue";
+import tooltips from "@/components/tooltips/tooltips";
+import ToolTips from "@/components/tooltips/ToolTips.vue";
+import ToolTipsButton from "@/components/tooltips/ToolTipsButton.vue";
 
 export default {
   components:{
@@ -141,7 +146,9 @@ export default {
     PromptModal,
     DownloadModal,
     DropdownMenu,
-    ShareModal
+    ShareModal,
+    ToolTips,
+    ToolTipsButton
   },
   data() {
     return {
@@ -151,7 +158,8 @@ export default {
       selectedFiles: [],
       selectedFilesSaved: [],
       options: ["View", "Delete", "Share"],
-      shareFile: null
+      shareFile: null,
+      tooltipsContent: tooltips.filePage
     }
   },
   computed: {
