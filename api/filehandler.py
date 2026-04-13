@@ -112,7 +112,7 @@ class FileHandler:
                 self.handle_zip(user, file, filename)
             elif filename.endswith(('.tar', '.tar.gz', '.tgz', '.tar.bz2')):
                 self.handle_tar(user, file, filename)
-            elif filename.endswith(".png", ".tiff", ".tif", ".jpeg", ".jpg"):
+            elif filename.endswith((".png", ".tiff", ".tif", ".jpeg", ".jpg")):
                 await self.handle_single_file(user, file, filename)
 
         return saved_files
@@ -256,6 +256,7 @@ class FileHandler:
     
             case _:
                 stored_file_stem = Path(stored_file_name).stem
+                uploaded_file_path = os.path.join(self.upload_directory, user, stored_file_name)
                 proccessed_file_path = os.path.join(self.processed_directory, user, stored_file_stem)
                 if os.path.exists(uploaded_file_path) and os.path.exists(proccessed_file_path):
                     shutil.rmtree(proccessed_file_path, ignore_errors=True)

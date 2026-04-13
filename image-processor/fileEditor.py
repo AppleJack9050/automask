@@ -87,31 +87,35 @@ class FileEditor:
 
     def __highlight_mask(self, image_tensor: torch.Tensor, mask_tensor: torch.Tensor) -> torch.Tensor:
         alpha = 0.5
-
-        coloured_mask = torch.rand(4, device=image_tensor.device)
-        coloured_mask[3] = alpha
-        coloured_mask = coloured_mask.view(1, 4, 1, 1)
+        colour = torch.rand(3, device=image_tensor.device)
 
         if image_tensor.dim() == 3:
             image_tensor = image_tensor.unsqueeze(0)
- 
+        image_tensor = image_tensor.float()
+
+        if image_tensor.max() > 1.0:
+            image_tensor = image_tensor / 255.0
+
         if image_tensor.shape[1] == 3:
             image_tensor = torch.cat(
-                [
-                    image_tensor,
-                    torch.ones_like(image_tensor[:, :1, :, :])
-                ],
+                [image_tensor, torch.ones_like(image_tensor[:, :1, :, :])],
                 dim=1
             )
 
         if mask_tensor.dim() == 3:
             mask_tensor = mask_tensor.unsqueeze(0)
 
-        mask_tensor = mask_tensor.float().repeat(1, 4, 1, 1)
-        overlay = mask_tensor * coloured_mask 
-        image_tensor_overlay = image_tensor.float() + overlay * alpha
+        binary_mask = (mask_tensor > 0).float()[:, :1, :, :]
 
-        return image_tensor_overlay.clamp(0)
+        rgb = image_tensor[:, :3, :, :]
+        alpha_channel = image_tensor[:, 3:, :, :]
+        overlay_rgb = colour.view(1, 3, 1, 1).expand_as(rgb)
+        blended_rgb = rgb * (1 - alpha) + overlay_rgb * alpha
+
+        result_rgb = torch.where(binary_mask.bool(), blended_rgb, rgb)
+        result = torch.cat([result_rgb, alpha_channel], dim=1)
+
+        return (result * 255.0).clamp(0, 255).byte()
 
     def __make_edited_image_directory(self, target_directory: str):
         edited_dir = Path(target_directory) / "edited"

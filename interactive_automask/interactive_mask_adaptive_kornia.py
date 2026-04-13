@@ -165,7 +165,6 @@ def main():
 
     w, h = pil_image.size
 
-    # select the device for computation
     if torch.cuda.is_available():
         device = torch.device("cuda")
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():

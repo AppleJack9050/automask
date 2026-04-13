@@ -23,7 +23,6 @@ function onChange(event) {
 function handleDrop(event) {
   filesStore.addFile(...event.dataTransfer.files);
 }
-
 </script>
 
 <style>

@@ -20,10 +20,12 @@ function openUserModal() {
   modal.show();
 }
 </script>
-
 <template>
   <div class="d-flex min-vh-100">
-    <aside class="d-flex flex-column bg-dark text-white" style="width: 240px; min-width: 240px;">
+    <aside
+      class="d-flex flex-column bg-dark text-white"
+      style="position: fixed; top: 0; left: 0; width: 240px; height: 100vh;"
+    >
       <div class="px-4 py-4 border-bottom border-secondary">
         <h5 class="fw-bold text-white mb-0 letter-spacing-1">Automask</h5>
       </div>

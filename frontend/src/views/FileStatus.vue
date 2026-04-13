@@ -44,6 +44,21 @@
             :id="'collapse-' + index + '-' + status"
             class="collapse show"
           >
+            <div class="px-4 py-2 border-bottom bg-white">
+              <input
+                v-model="search[status]"
+                type="text"
+                class="fform-control form-control-sm w-50"
+                placeholder="Search files..."
+              />
+              <button
+                v-if="search[status]"
+                class="btn btn-sm btn-outline-secondary"
+                @click="search[status] = ''"
+              >
+                Clear
+              </button>
+            </div>
             <div
               v-if="status === 'Uploaded' || status === 'Saved'"
               class="px-4 py-2 bg-light border-bottom d-flex flex-wrap gap-2 align-items-center"
@@ -76,9 +91,12 @@
                 <label class="form-label small fw-medium text-secondary mb-0">Select All</label>
               </div>
             </div>
-            <ul class="list-group list-group-flush">
+            <ul
+              class="list-group list-group-flush overflow-auto"
+              style="max-height: 500px;"
+            >
               <li
-                v-for="file in fileList"
+                v-for="file in filteredFiles(fileList, status)"
                 :key="file"
                 class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-4 py-3"
               >
@@ -159,7 +177,8 @@ export default {
       selectedFilesSaved: [],
       options: ["View", "Delete", "Share"],
       shareFile: null,
-      tooltipsContent: tooltips.filePage
+      tooltipsContent: tooltips.filePage,
+      search: {}
     }
   },
   computed: {
@@ -401,6 +420,13 @@ export default {
         this.selectedFilesSaved = allSelected ? [] : [...items];
       }
     },
+    filteredFiles(fileList, status) {
+      const query = (this.search[status] || "").toLowerCase()
+      if (!query) return fileList
+      return fileList.filter(file =>
+        file.toLowerCase().includes(query)
+      );
+    }
   },
   created() {
     this.loadFiles();

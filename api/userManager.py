@@ -2,7 +2,7 @@ import os
 import sqlite3
 from uuid import uuid4
 import time
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm # type: ignore
+from fastapi.security import OAuth2PasswordBearer # type: ignore
 from pwdlib import PasswordHash # type: ignore
 import jwt # type: ignore
 import secrets

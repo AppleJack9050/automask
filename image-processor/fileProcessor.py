@@ -14,9 +14,6 @@ from sam2.build_sam import build_sam2
 from sam2.automatic_mask_generator import SAM2AutomaticMaskGenerator
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 from groundingdino.util.inference import load_model, load_image, predict, box_convert
-#import sam3
-#from sam3 import build_sam3_image_model
-#from sam3.model.sam3_image_processor import Sam3Processor
 
 import gc
 

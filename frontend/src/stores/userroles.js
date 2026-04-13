@@ -43,9 +43,9 @@ export const useUserStore = defineStore('roles', {
     async createUser(email, password) {
       try {
         const response = await userservice.createUser(email, password);
-        const { token, user } = response.data;
+        const { token, username } = response.data;
 
-        this.setAuth(token, user);
+        this.setAuth(token, username);
       } catch (error) {
         notify({
           title:'Login Failed',
@@ -56,7 +56,9 @@ export const useUserStore = defineStore('roles', {
     },
     async updateUsername(oldUsername, newUsername, password) {
       try {
-        await userservice.updateUserName(oldUsername, password, newUsername);
+        const response = await userservice.updateUserName(oldUsername, password, newUsername);
+        const { token, username } = response.data;
+        this.setAuth(token, username);
       } catch (error) {
         notify({
           title:'Failed',
@@ -67,7 +69,9 @@ export const useUserStore = defineStore('roles', {
     },
     async updatePassword(oldUsername, newUsername, password) {
       try {
-        await userservice.updateUserName(oldUsername, password, newUsername);
+        const response = await userservice.updateUserName(oldUsername, password, newUsername);
+        const { token, username } = response.data;
+        this.setAuth(token, username);
       } catch (error) {
         notify({
           title:'Failed',
