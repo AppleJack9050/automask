@@ -31,10 +31,11 @@ export default class MaskSetup {
   static async createSVGLayers(masks) {
     let layers = []
     for (const layer of masks) {
-      const img = new Image();
-      img.src = `data:image/png;base64,${await MaskSetup.convertMaskTransparant(layer)}`;
-      await img.decode();
-
+      const blob = await (await fetch(
+        `data:image/png;base64,${await MaskSetup.convertMaskTransparant(layer)}`
+      )).blob();
+      
+      const img = await createImageBitmap(blob);
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')
       canvas.width = img.width
@@ -47,6 +48,7 @@ export default class MaskSetup {
         height: img.height,
         data: ctx.getImageData(0, 0, img.width, img.height).data
       });
+      img.close?.();
     }
     return layers;
   }

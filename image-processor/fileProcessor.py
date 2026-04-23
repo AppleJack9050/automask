@@ -34,7 +34,10 @@ class FileProcessor():
 
         os.makedirs(processed_directory, exist_ok=True)
 
+        print("Building SAM2...")
         self.sam2_model = self.__build_sam2()
+        print("SAM2 Built")
+        print("Building DINO..")
         self.dino = self.__build_dino()
 
     def __get_device_for_SAM(self) -> str:
@@ -132,7 +135,6 @@ class FileProcessor():
         gc.collect()
 
     def __generate_sam2_masking(self, image: str):
-        """Generates the object masks from sam2"""
         image = Image.open(image)
 
         image_np = np.array(image.convert("RGB"), dtype=np.uint8)

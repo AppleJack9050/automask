@@ -9,8 +9,12 @@ const userStore = useUserStore();
 
 const routes = computed(() => 
   router.getRoutes().filter(route => {
-    if (route.meta.requiresAuth) return userStore.auth.loggedIn
-    return route.name && route.path !== '/'
+    if (!route.name) return false;
+    if (route.path === '/') return false;
+    if (route.name === 'Edit') return false;
+    if (route.meta.requiresAuth && !userStore.auth.loggedIn) return false;
+
+    return true;
   })
 );
 
@@ -24,7 +28,7 @@ function openUserModal() {
   <div class="d-flex min-vh-100">
     <aside
       class="d-flex flex-column bg-dark text-white"
-      style="position: fixed; top: 0; left: 0; width: 240px; height: 100vh;"
+      style="position: fixed; top: 0; left: 0; width: 200px; height: 100vh;"
     >
       <div class="px-4 py-4 border-bottom border-secondary">
         <h5 class="fw-bold text-white mb-0 letter-spacing-1">Automask</h5>
@@ -41,7 +45,7 @@ function openUserModal() {
         </router-link>
       </nav>
       <div class="px-4 py-3 border-top border-secondary">
-        <div v-if="userStore.auth.loggedIn" class="d-flex align-items-center gap-2">
+        <div v-if="userStore.auth.loggedIn" class="d-flex align-items-center gap-2 flex-column">
           <span
             class="badge bg-success rounded-pill"
             style="width: 8px; height: 8px; padding: 0;"
@@ -54,6 +58,13 @@ function openUserModal() {
           >
             {{ userStore.auth.user }}
           </span>
+          <br />
+          <button
+            class="btn btn-primary mt-2"
+            @click="userStore.logout()"  
+          >
+            Log Out
+          </button>
         </div>
         <div v-else>
           <span class="small text-secondary fst-italic">Not signed in</span>

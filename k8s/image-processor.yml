@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-processor
+  template:
+    metadata:
+      labels:
+        app: image-processor
+    spec:
+      initContainers:
+        - name: wait-for-api
+          image: busybox
+          command: ['sh', '-c', 'until wget -qO- http://api/health; do sleep 5; done']
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: image-processor
+          image: mbyrne01/automask-image-processor:latest
+          envFrom:
+            - configMapRef:
+                name: app-config
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+            - name: processed
+              mountPath: /processed
+            - name: saved
+              mountPath: /saved
+          resources:
+            requests:
+              memory: "2Gi"
+            limits:
+              memory: "8Gi"
+          #     nvidia.com/gpu: 1
+  
+          startupProbe:
+            exec:
+              command: ["sh", "-c", "exit 0"]
+            failureThreshold: 60
+            periodSeconds: 10
+          restartPolicy: Always
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-volume
+        - name: processed
+          persistentVolumeClaim:
+            claimName: processed-volume
+        - name: saved
+          persistentVolumeClaim:
+            claimName: saved-volume

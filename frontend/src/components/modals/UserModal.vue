@@ -13,112 +13,77 @@
           </button>
         </div>
         <div class="modal-body">
-          <div class="mb-3 signin-form card border-0 shadow-sm rounded-4 p-4" style="max-width: 420px; margin: 0 auto;">
-            <ul class="nav nav-pills nav-fill mb-4 bg-light rounded-3 p-1">
-              <li class="nav-item">
-                <a
-                  class="nav-link rounded-3 fw-medium"
-                  :class="{ active: !usernameForm }"
-                  href="#"
-                  @click.prevent="usernameForm = false; deleteForm = false;"
-                >
-                  Update Password
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link rounded-3 fw-medium"
-                  :class="{ active: usernameForm }"
-                  href="#"
-                  @click.prevent="usernameForm = true; deleteForm = false;"
-                >
+          <div class="mb-3 signin-form card border-0 shadow-sm rounded-4 p-4" style="max-width: 500px; margin: 0 auto;">
+            <ul class="nav nav-tabs nav-fill flex-nowrap" id="tabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="username-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#username"
+                  type="button"
+                  role="tab"
+                  aria-controls="username-tab"
+                  aria-selected="true"
+                  >
                   Update Username
-                </a>
+                </button>
               </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link rounded-3 fw-medium"
-                  :class="{ active: deleteUser }"
-                  href="#"
-                  @click.prevent="deleteForm = true"
-                >
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="password-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#password"
+                  type="button"
+                  role="tab"
+                  aria-controls="password-tab"
+                  aria-selected="false"
+                  >
+                  Update Password
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="delete-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#delete"
+                  type="button"
+                  role="tab"
+                  aria-controls="delete-tab"
+                  aria-selected="false"
+                  >
                   Delete User
-                </a>
+                </button>
               </li>
             </ul>
-            <div v-if="deleteForm">
-              <Form @submit="deleteAccount">
-                <label class="form-label small fw-medium text-secondary">Enter your Details to Confirm</label>
-                <div class="mb-3">
-                  <label class="form-label small fw-medium text-secondary">Username</label>
-                  <Field
-                    name="new_username"
-                    :rules="{ required: true, alpha_num: true }"
-                    v-model="newUsername"
-                    type="text"
-                    placeholder="Username"
-                    as="input"
-                    class="form-control form-control-sm rounded-3"
-                  />
-                  <ErrorMessage name="new_username" class="text-danger small mt-1 d-block" />
-                </div>
-                <div class="mb-4">
-                  <label class="form-label small fw-medium text-secondary">Password</label>
-                  <Field
-                    name="password"
-                    :rules="{ required: true }"
-                    v-model="password"
-                    type="password"
-                    placeholder="Enter your Password"
-                    as="input"
-                    class="form-control form-control-sm rounded-3"
-                  />
-                   <ErrorMessage name="password" class="text-danger small mt-1 d-block" />
-                </div>
-                <button type="submit" class="btn btn-danger w-100 rounded-3 fw-medium">
-                  Delete Account
-                </button>
-              </Form>
-            </div>
-            <div v-if="usernameForm && !deleteForm">
-              <Form @submit="updateUsername">
-                <div class="mb-3">
-                  <label class="form-label small fw-medium text-secondary">Username</label>
-                  <Field
-                    name="new_username"
-                    :rules="{ required: true, alpha_num: true }"
-                    v-model="newUsername"
-                    type="text"
-                    placeholder="Username"
-                    as="input"
-                    class="form-control form-control-sm rounded-3"
-                  />
-                  <ErrorMessage name="new_username" class="text-danger small mt-1 d-block" />
-                </div>
-                <div class="mb-4">
-                  <label class="form-label small fw-medium text-secondary">Password</label>
-                  <Field
-                    name="password"
-                    :rules="{ required: true }"
-                    v-model="password"
-                    type="password"
-                    placeholder="Enter your Password"
-                    as="input"
-                    class="form-control form-control-sm rounded-3"
-                  />
-                   <ErrorMessage name="password" class="text-danger small mt-1 d-block" />
-                </div>
-                <button type="submit" class="btn btn-primary w-100 rounded-3 fw-medium">
-                  Update Username
-                </button>
-              </Form>
-            </div>
-            <div v-if="!usernameForm && !deleteForm">
-              <Form @submit="updatePassword">
-                <div class="mb-4">
-                  <label class="form-label small fw-medium text-secondary">Enter Your Old Password</label>
+            <div class="tab-content">
+              <div
+                id="delete"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="delete-tab"
+              >
+                <Form @submit="deleteAccount">
+                  <label class="form-label small fw-medium text-secondary">Enter your Details to Confirm</label>
+                  <div class="mb-3">
+                    <label class="form-label small fw-medium text-secondary">Username</label>
                     <Field
-                      name="old_password"
+                      name="new_username"
+                      :rules="{ required: true, alpha_num: true }"
+                      v-model="newUsername"
+                      type="text"
+                      placeholder="Username"
+                      as="input"
+                      class="form-control form-control-sm rounded-3"
+                    />
+                    <ErrorMessage name="new_username" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <div class="mb-4">
+                    <label class="form-label small fw-medium text-secondary">Password</label>
+                    <Field
+                      name="password"
                       :rules="{ required: true }"
                       v-model="password"
                       type="password"
@@ -126,38 +91,100 @@
                       as="input"
                       class="form-control form-control-sm rounded-3"
                     />
-                    <ErrorMessage name="old_password" class="text-danger small mt-1 d-block" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label small fw-medium text-secondary">Enter your New Password</label>
-                  <Field
-                    name="new_password"
-                   :rules="{ required: true, min: 8, regex: /^\S+$/ }"
-                    v-model="newPassword"
-                    type="password"
-                    placeholder="Enter your New Password"
-                    as="input"
-                    class="form-control form-control-sm rounded-3"
-                  />
-                  <ErrorMessage name="new_password" class="text-danger small mt-1 d-block" />
-                </div>
-                <div class="mb-4">
-                  <label class="form-label small fw-medium text-secondary">Confirm New Password</label>
-                  <Field
-                    name="new_password_repeat"
+                    <ErrorMessage name="password" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <button type="submit" class="btn btn-danger w-100 rounded-3 fw-medium">
+                    Delete Account
+                  </button>
+                </Form>
+              </div>
+              <div
+                id="username"
+                class="tab-pane show active"
+              >
+                <Form @submit="updateUsername">
+                  <div class="mb-3">
+                    <label class="form-label small fw-medium text-secondary">Username</label>
+                    <Field
+                      name="new_username"
+                      :rules="{ required: true, alpha_num: true }"
+                      v-model="newUsername"
+                      type="text"
+                      placeholder="Username"
+                      as="input"
+                      class="form-control form-control-sm rounded-3"
+                    />
+                    <ErrorMessage name="new_username" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <div class="mb-4">
+                    <label class="form-label small fw-medium text-secondary">Password</label>
+                    <Field
+                      name="password"
+                      :rules="{ required: true }"
+                      v-model="password"
+                      type="password"
+                      placeholder="Enter your Password"
+                      as="input"
+                      class="form-control form-control-sm rounded-3"
+                    />
+                    <ErrorMessage name="password" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100 rounded-3 fw-medium">
+                    Update Username
+                  </button>
+                </Form>
+              </div>
+              <div
+                id="password"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="password-tab"
+              >
+                <Form @submit="updatePassword">
+                  <div class="mb-4">
+                    <label class="form-label small fw-medium text-secondary">Enter Your Old Password</label>
+                      <Field
+                        name="old_password"
+                        :rules="{ required: true }"
+                        v-model="password"
+                        type="password"
+                        placeholder="Enter your Password"
+                        as="input"
+                        class="form-control form-control-sm rounded-3"
+                      />
+                      <ErrorMessage name="old_password" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-medium text-secondary">Enter your New Password</label>
+                    <Field
+                      name="new_password"
                     :rules="{ required: true, min: 8, regex: /^\S+$/ }"
-                    v-model="newPasswordRepeat"
-                    type="password"
-                    placeholder="Enter your Password"
-                    as="input"
-                    class="form-control form-control-sm rounded-3"
-                  />
-                  <ErrorMessage name="new_password_repeat" class="text-danger small mt-1 d-block" />
-                </div>
-                <button type="submit" class="btn btn-primary w-100 rounded-3 fw-medium">
-                  Update Password
-                </button>
-              </Form>
+                      v-model="newPassword"
+                      type="password"
+                      placeholder="Enter your New Password"
+                      as="input"
+                      class="form-control form-control-sm rounded-3"
+                    />
+                    <ErrorMessage name="new_password" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <div class="mb-4">
+                    <label class="form-label small fw-medium text-secondary">Confirm New Password</label>
+                    <Field
+                      name="new_password_repeat"
+                      :rules="{ required: true, min: 8, regex: /^\S+$/ }"
+                      v-model="newPasswordRepeat"
+                      type="password"
+                      placeholder="Enter your Password"
+                      as="input"
+                      class="form-control form-control-sm rounded-3"
+                    />
+                    <ErrorMessage name="new_password_repeat" class="text-danger small mt-1 d-block" />
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100 rounded-3 fw-medium">
+                    Update Password
+                  </button>
+                </Form>
+              </div>
             </div>
           </div>
         </div>

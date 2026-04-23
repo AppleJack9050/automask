@@ -1,22 +1,27 @@
 <template>
-  <div class="svg-canvas-area d-flex align-items-center justify-content-center flex-grow-1 position-relative overflow-hidden">
+  <div 
+    class="svg-canvas-area d-flex flex-column align-items-center position-relative overflow-hidden"
+    style="height: 100vh; overflow: hidden;"
+  >
+    <edit-toolbar
+      class="bg-white border-bottom px-3 py-2 flex-shrink-0"
+      style="top: 0; z-index: 10;"
+      :touching-up="usingTouchUp"
+      @restore="this.restoreImage"
+      @undo="handleUndo"
+      @redo="handleRedo"
+      @update-touch-up-radius="updateTouchUpRadius"
+      @transparentRemoval="toggleTransparent"
+      @save="save"
+    ></edit-toolbar>
     <div
-      class="d-flex align-items-center justify-content-center w-100 h-100r"
-      v-if="!loading"
+      class="d-flex align-items-center justify-content-center"
+      style="flex: 1; min-height: 0;"
+      v-if="!loading && imageWidth && imageHeight"
     >
-      <edit-toolbar
-        class="bg-white border-bottom px-3 py-2"
-        style="position: sticky; top: 0; z-index: 10;"
-        :touching-up="usingTouchUp"
-        @restore="this.restoreImage"
-        @undo="handleUndo"
-        @redo="handleRedo"
-        @update-touch-up-radius="updateTouchUpRadius"
-        @transparentRemoval="toggleTransparent"
-      ></edit-toolbar>
       <svg
         class=".d-block.mw-100.mh-100"
-        style="cursor: crosshair;"
+        style="cursor: crosshair; max-width: 100%; max-height: 100%;"
         :width="this.imageWidth"
         :height="this.imageHeight"
         :viewBox="`0 0 ${this.imageWidth} ${this.imageHeight}`"
@@ -76,7 +81,6 @@
         :usingTouchUp="usingTouchUp"
         @select="selectOnlyObject"
         @remove="removeObject"
-        @save="save"
         @start="showTouchUp"
         @end="hideTouchUp"
         @cancel="cancel"
@@ -344,7 +348,9 @@ export default {
     },
     updateTouchUpRadius(value) {
       this.touchUpRadius = value;
-      this.touchUpTool.touchUpRadius = value;
+      if (this.touchUpTool) {
+        this.touchUpTool.touchUpRadius = value;
+      }
     },
     resetTouchUp(preSnapshot, postSnapshot, undo, restore = false) {
       this.shownImage = this.touchUpTool.resetTouchUp(
@@ -437,7 +443,7 @@ export default {
             this.touchUpCtx.drawImage(image, 0, 0)
 
             this.basePixels = this.touchUpCtx.getImageData(0, 0, image.width, image.height).data;
-  
+
             this.layers = await MaskSetup.createSVGLayers(this.masks);
             this.maskSelector = new MaskSelector(this.fileName);
             this.touchUpTool = new TouchUp(this.touchUpRadius, this.scaleX, this.scaleY, this.fileName);

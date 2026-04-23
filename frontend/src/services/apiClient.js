@@ -3,7 +3,7 @@ import { useUserStore } from '@/stores/userroles';
 import router from '@/router';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:8000'
+    baseURL: '/api'
 });
 apiClient.interceptors.response.use(
   response => response,

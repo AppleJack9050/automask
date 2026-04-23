@@ -10,15 +10,17 @@ async function uploadFiles() {
   try {
     await fileService.putFiles(filesStore.getFiles);
     notify({
+      type:'success',
       title: 'Success',
       text:'Uploaded Successfully'
-    })
+    });
+    filesStore.empty();
   } catch (e) {
     notify({
       text: e.message, 
       title: 'Error',
       type: 'error'
-    })
+    });
   }
 }
 </script>

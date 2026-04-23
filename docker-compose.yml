@@ -8,7 +8,6 @@ services:
       - SAM2_FULL_PATH=/image-processor/Grounded-SAM-2/sam2
       - SAM2_CHECKPOINT=checkpoints/sam2.1_hiera_large.pt
       - SAM2_CONFIG=configs/sam2.1/sam2.1_hiera_l.yaml
-      - SAM3_FULL_PATH=/image-processor/sam3
       - GROUNDING_DINO_CHECKPOINT=/image-processor/Grounded-SAM-2/gdino_checkpoints/groundingdino_swint_ogc.pth
       - GROUNDING_DINO_CONFIG=/image-processor/Grounded-SAM-2/grounding_dino/groundingdino/config/GroundingDINO_SwinT_OGC.py
       - RABBITMQ_HOST=rabbitmq
@@ -17,8 +16,6 @@ services:
       - SAVED_DIR=/saved
       - UPLOAD_DIR=/uploads
       - PROCESSED_DIR=/processed
-      - USERS_DB=/database/users.db
-      - FILES_DB=/database/files.db
       - PYTORCH_ENABLE_MPS_FALLBACK=1
     volumes:
       - uploads:/uploads
@@ -65,12 +62,6 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.myapp.rule=Host(`app.${DOMAIN}`)"
-#      - "traefik.http.routers.myapp.entrypoints=web"  # websecure
-#      - "traefik.http.routers.myapp.tls.certresolver=letsencrypt"
-#      - "traefik.docker.network=app-network"
   frontend:
     container_name: frontend
     build:
@@ -80,13 +71,9 @@ services:
       - "8080:80"
     networks:
       - app-network
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.myapp.rule=Host(`app.${DOMAIN}`)"
-#      - "traefik.http.routers.myapp.entrypoints=web" # websecure
-#      - "traefik.http.routers.myapp.tls.certresolver=letsencrypt"
-#      - "traefik.docker.network=app-network"
-
+    depends_on:
+      api:
+        condition: service_healthy
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -99,26 +86,6 @@ services:
       start_period: 10s
     networks:
       - internal-network
-#  traefik:
-#    image: traefik:v3.3
-#    command:
-#      - "--entrypoints.web.address=:80"
-#      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
-#      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-#      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-#      - "--entrypoints.websecure.address=:443"
-#      - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
-#      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-#      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
-#      - "--providers.docker=true"
-#      - "--providers.docker.exposedbydefault=false"
-#      - "--api.dashboard=true"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#      - ./traefik/acme.json:/acme.json
-#    ports:
-#      - "80:80"
-#      - "443:443"
 networks:
   app-network:
     driver: bridge

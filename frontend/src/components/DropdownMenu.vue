@@ -3,7 +3,11 @@
     <button class="btn btn-link p-0" @click="toggle">
       <i class="bi bi-three-dots-vertical" />
     </button>
-    <ul class="dropdown-menu" :class="{ show: isOpen }">
+    <ul
+      class="dropdown-menu"
+      :class="{ show: isOpen }"
+      style="margin: 0; position: absolute; inset: 0px 0px auto auto; transform: translate(0px, 30px);"
+      >
       <li v-for="(option, index) in options" :key="index">
         <a class="dropdown-item" @click="handleEmit(option)">{{ option }}</a>
       </li>

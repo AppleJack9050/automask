@@ -11,9 +11,6 @@
         <a class="dropdown-item" @click="startTouchUp">Use Touch Up Tool</a>
       </li>
       <li>
-        <a class="dropdown-item" @click="save">Save Current Image</a>
-      </li>
-      <li>
         <a class="dropdown-item" @click="cancel">Cancel</a>
       </li>
     </ul>
@@ -35,9 +32,6 @@ export default {
     },
     removeObject() {
       this.$emit('remove', this.id);
-    },
-    save() {
-      this.$emit('save');
     },
     startTouchUp() {
       this.$emit('start');

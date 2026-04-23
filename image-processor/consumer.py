@@ -16,10 +16,11 @@ class Consumer():
             os.getenv("PROCESSED_DIR"),
             os.getenv("SAVED_DIR")   
         )
+        print("Models Initialised, setting up Rabbit MQ channel:")
         self.setup_consumer()
 
     def setup_consumer(self):
-        host = os.getenv("RABBITMQ_HOST", "localhost")
+        host = os.getenv("RABBITMQ_HOST", "rabbitmq")
         connection_params = pika.ConnectionParameters(
             host=host
         )

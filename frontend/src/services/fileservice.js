@@ -167,4 +167,4 @@ export default {
     showUploadFile,
     deleteFile,
     shareFile
-  }
+}

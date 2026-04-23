@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  RABBITMQ_HOST: "rabbitmq"
+  SAVED_DIR: "/saved"
+  UPLOAD_DIR: "/uploads"
+  PROCESSED_DIR: "/processed"
+  USERS_DB: "/database/users.db"
+  FILES_DB: "/database/files.db"
+  SAM2_FULL_PATH: "/image-processor/Grounded-SAM-2/sam2"
+  SAM2_CHECKPOINT: "checkpoints/sam2.1_hiera_large.pt"
+  SAM2_CONFIG: "configs/sam2.1/sam2.1_hiera_l.yaml"
+  GROUNDING_DINO_CHECKPOINT: "/image-processor/Grounded-SAM-2/gdino_checkpoints/groundingdino_swint_ogc.pth"
+  GROUNDING_DINO_CONFIG: "/image-processor/Grounded-SAM-2/grounding_dino/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+  PYTORCH_ENABLE_MPS_FALLBACK: "1"

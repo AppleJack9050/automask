@@ -1,0 +1,14 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: processor-scaler
+spec:
+  scaleTargetRef:
+    name: image-processor
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  triggers:
+    - type: rabbitmq
+      metadata:
+        queueName: image_queue
+        queueLength: "5"

@@ -55,6 +55,17 @@ class FilesTable:
             c.commit()
             return stored_file_name
 
+    def update_file_name(self, file_name: str, new_file_name: str, user: str):
+        with sqlite3.connect(FILES_DB) as c:
+            c.execute(    
+                """
+                    UPDATE files
+                    SET file_name = ?
+                    WHERE user_id = ? AND file_name = ?
+                """,
+                (new_file_name, user, file_name))
+            c.commit()
+
     def get_stored_name(self, file_name: str, user: str) -> str | None:
         with sqlite3.connect(FILES_DB) as c:
             q = c.execute(    

@@ -122,7 +122,6 @@ export default {
       await this.login(this.username, this.password);
       this.username = '';
       this.password = '';
-
     },
     async create() {
       await this.createUser(this.username, this.password);

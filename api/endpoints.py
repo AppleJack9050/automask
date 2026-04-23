@@ -1,14 +1,13 @@
-from fastapi import FastAPI, UploadFile, File, Request, Depends # type: ignore
-from fastapi.responses import JSONResponse, StreamingResponse # type: ignore
+from fastapi import FastAPI, UploadFile, File, Request, Depends
+from fastapi.responses import JSONResponse, StreamingResponse
 from typing import List
 import os
 from filehandler import FileHandler
 from producer import Producer
-from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from pathlib import Path
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # type: ignore
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from userManager import UserManager
-from jwt.exceptions import DecodeError # type: ignore
+from jwt.exceptions import DecodeError
 from requestTypes import LoginRequest, UpdateUserRequest, DownloadRequest, ShowFilesRequest, ProcessRequest, DeleteFile, ShareFileRequest
 
 app = FastAPI()

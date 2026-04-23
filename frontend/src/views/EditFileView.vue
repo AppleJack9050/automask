@@ -1,7 +1,9 @@
 <template>
   <div class="container-fluid px-0 min-vh-100 d-flex flex-column">
     <div v-if="uploadOnly === 'true'">
-      <div class="card border-0 shadow-sm rounded-4 p-3 w-100" style="max-width: 860px;">
+      <div 
+        class="card border-0 shadow-sm rounded-4 p-3 w-100"
+        style="margin: 0 auto;">
         <view-file
           :baseImage="baseImage"
           :fileName="imageTitle"
@@ -98,8 +100,11 @@ export default {
       modal.hide();
     },
     fetchAssetsForEdit() {
-      try {
-        const interval = setInterval(async () => {
+      let interval;
+      let timeout;
+
+      interval = setInterval(async () => {
+        try {
           const assets = await fileService.showEditor(this.imageTitle, this.isSaved);
           if (assets.data.masks.length > 0) {
             clearInterval(interval);
@@ -108,23 +113,28 @@ export default {
             this.editedImage = assets.data.edited_image;
             this.masks = assets.data.masks;
           }
-        }, 5000);
-
-        const timeout = setTimeout(() => {
-          this.$notify({
-          title:'Error',
-          text:'Timed out waiting for assets',
-          type:'error'
-        });
+        } catch (e) {
           clearInterval(interval);
-        }, 30000);
-      } catch (e) {
-        this.$notify({
-          title:'Error',
-          text:e.message,
-          type:'error'
-        })
-      }
+          clearTimeout(timeout);
+          this.$notify({ title: 'Error', text: e.message, type: 'error' });
+        }
+      }, 2000);
+
+      timeout = setTimeout(async () => {
+        try {
+          clearInterval(interval);
+          const assets = await fileService.showEditor(this.imageTitle, this.isSaved);
+          if (assets.data.base_image || assets.data.edited_image) {
+            this.baseImage = assets.data.base_image;
+            this.editedImage = assets.data.edited_image;
+            this.masks = [];
+          } else {
+            this.$notify({ title: 'Error', text: 'Timed Out Waiting For Assets', type: 'error' });
+          }
+        } catch (e) {
+          this.$notify({ title: 'Error', text: e.message, type: 'error' });
+        }
+      }, 10000);
     },
     fetchFileForViewing() {
       try {

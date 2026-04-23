@@ -1,13 +1,14 @@
 <template>
   <div>
     <div
-      class="svg-mask-viewer"
+      class="svg-canvas-area d-flex align-items-center justify-content-center flex-grow-1 position-relative overflow-hidden"
       v-if="!loading"
     >
       <svg
-        :width="1200"
-        :height="1200"
-        :viewBox="`0 0 1200 1200`"
+        class="svg-wrapper"
+        width="100%"
+        height="100%"
+        viewBox="0 0 1200 1200"
       >
         <image
           :href="`data:image/png;base64,${baseImage}`"
@@ -70,3 +71,13 @@ export default {
   }
 };
 </script>
+
+<style>
+.svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+</style>

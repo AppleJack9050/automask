@@ -10,7 +10,6 @@ from filesTable import FilesTable
 import io
 from typing import List
 from producer import Producer
-from threading import Thread
 
 class FileHandler:
     def __init__(self, directory: str, processed_directory: str):
@@ -108,11 +107,13 @@ class FileHandler:
         saved_files = []
         for file in files:
             filename = file.filename
-            if filename.endswith(".zip"):
+            name, ext = os.path.splitext(filename)
+            filename = name + ext.lower()
+            if filename.lower().endswith(".zip"):
                 self.handle_zip(user, file, filename)
-            elif filename.endswith(('.tar', '.tar.gz', '.tgz', '.tar.bz2')):
+            elif filename.lower().endswith(('.tar', '.tar.gz', '.tgz', '.tar.bz2')):
                 self.handle_tar(user, file, filename)
-            elif filename.endswith((".png", ".tiff", ".tif", ".jpeg", ".jpg")):
+            elif filename.lower().endswith((".png", ".tiff", ".tif", ".jpeg", ".jpg")):
                 await self.handle_single_file(user, file, filename)
 
         return saved_files
@@ -173,7 +174,10 @@ class FileHandler:
         return masks
 
     def save(self, user: str, file: str, file_name: str, file_type: str):
-        stored_file_name = self.file_table.get_stored_name(file_name, user)
+        name, _ = os.path.splitext(file_name)
+        new_file_name = name + file_type
+        self.file_table.update_file_name(file_name, new_file_name, user)
+        stored_file_name = self.file_table.get_stored_name(new_file_name, user)
         if not os.path.exists(os.path.join(self.saved_directory, user)):
             os.makedirs(os.path.join(self.saved_directory, user))
 

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      initContainers:
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z rabbitmq 5672; do sleep 2; done']
+      containers:
+        - name: api
+          image: mbyrne01/automask-api:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: app-config
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+            - name: processed
+              mountPath: /processed
+            - name: saved
+              mountPath: /saved
+            - name: database
+              mountPath: /database
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-volume
+        - name: processed
+          persistentVolumeClaim:
+            claimName: processed-volume
+        - name: saved
+          persistentVolumeClaim:
+            claimName: saved-volume
+        - name: database
+          persistentVolumeClaim:
+            claimName: database-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector:
+    app: api
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

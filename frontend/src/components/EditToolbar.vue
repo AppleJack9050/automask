@@ -2,8 +2,16 @@
   <div>
     <button
       class="btn btn-sm btn-outline-secondary"
+      @click="save"
+    >
+      Save File
+    </button>
+    <button
+      class="btn btn-sm btn-outline-secondary"
       @click="restore"
-    >Restore</button>
+    >
+      Restore
+    </button>
     <div v-if="touchingUp">
       <label for="slider" class="form-label">Select Brush Size: {{ touchUpRadius }} px</label>
       <input
@@ -18,11 +26,15 @@
     <button
       class="btn btn-sm btn-outline-secondary"
       @click="undo"
-    >Undo</button>
+    >
+      Undo
+    </button>
     <button
       class="btn btn-sm btn-outline-secondary"
       @click="redo"
-    >Redo</button>
+    >
+      Redo
+    </button>
     <select v-model="transparent">
       <option :value="'transparent'">Transparent</option>
       <option :value="'black'">Black</option>
@@ -55,6 +67,9 @@ export default {
     },
     restore() {
       this.$emit('restore');
+    },
+    save() {
+      this.$emit('save');
     }
   },
   watch: {

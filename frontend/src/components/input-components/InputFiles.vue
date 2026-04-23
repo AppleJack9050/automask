@@ -5,7 +5,7 @@
       multiple
       id="file-input"
       class="hidden-input"
-      accept=".zip, .tar, .tar.gz, .gz, .tgz, application/gzip, application/x-tar, .png, .jpg, .jpeg, .bmp, .tiff, .tif"
+      accept=".zip, .tar, .tar.gz, .gz, .tgz, application/gzip, application/x-tar, .png, .jpg, .jpeg, .bmp, .tiff, .tif, .bmp"
       @change="onChange"
     />
     <label for="file-input" class="file-label">Drop or Click to input files</label>

@@ -122,6 +122,7 @@
                     />
                   </div>
                   <dropdown-menu
+                    class="position-static"
                     :options="options"
                     :item="file"
                     :status="status"
@@ -214,7 +215,7 @@ export default {
           title:'Success',
           text:'File Downlaoded Successfully',
           type:'success'
-        })
+        });
       } catch (e) {
         this.$notify({
           title:'Error',

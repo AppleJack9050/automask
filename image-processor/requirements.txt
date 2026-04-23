@@ -1,4 +1,4 @@
-opencv-python
+opencv-python-headless
 torch
 torchvision
 transformers==4.26.1

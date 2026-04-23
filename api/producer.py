@@ -1,9 +1,5 @@
 import os, json
 import pika
-import pika
-import requests
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import time
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
@@ -23,7 +19,7 @@ class Producer():
             self.setup_rabbitmq_producer()
 
     def setup_rabbitmq_producer(self):
-        host = os.getenv("RABBITMQ_HOST", "localhost")
+        host = os.getenv("RABBITMQ_HOST", "rabbitmq")
         connection_params = pika.ConnectionParameters(
             host=host,
             heartbeat=0

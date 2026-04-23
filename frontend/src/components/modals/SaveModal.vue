@@ -81,24 +81,25 @@ export default {
     }
   },
   methods: {
-    downloadToUser() {
-      const link = document.createElement("a");
-
-      link.download = `${this.fileName}${this.selectedFileType}`;
-
-      link.href = `data:image/png;base64,${this.file}`;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    },
     async saveToBackend() {
-      await fileservice.saveImage(this.file, this.fileName, this.selectedFileType);
+      try {
+        await fileservice.saveImage(this.file, this.fileName, this.selectedFileType);
+        this.$notify({
+          title:'success',
+          text:'Saved Successfully',
+          type:'success'
+        });
+      } catch (error) {
+        this.$notify({
+          title:'Failed',
+          text: error.message,
+          type:'error'
+        });
+      }
     },
     async save() {
       if (!this.extensionEntered) {
         await this.saveToBackend(this.file);
-        this.downloadToUser(this.file);
       }
     }
   }
