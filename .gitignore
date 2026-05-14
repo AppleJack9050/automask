@@ -36,3 +36,5 @@ sam2
 sam3
 Grounded-SAM-2
 mlenv
+.clj-kondo
+.lsp

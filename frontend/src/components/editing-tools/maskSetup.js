@@ -29,26 +29,30 @@ export default class MaskSetup {
     return newBase64;
   }
   static async createSVGLayers(masks) {
-    let layers = []
-    for (const layer of masks) {
-      const blob = await (await fetch(
-        `data:image/png;base64,${await MaskSetup.convertMaskTransparant(layer)}`
-      )).blob();
-      
-      const img = await createImageBitmap(blob);
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx.drawImage(img, 0, 0)
+    const layers = [];
 
+    for (const layer of masks) {
+      const base64 = await MaskSetup.convertMaskTransparant(layer);
+      const byteString = atob(base64);
+      const bytes = new Uint8Array(byteString.length);
+      for (let i = 0; i < byteString.length; i++) {
+        bytes[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'image/png' });
+  
+      const img = await createImageBitmap(blob);
+  
+      const canvas = new OffscreenCanvas(img.width, img.height);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, img.width, img.height);
+  
       layers.push({
-        img,
         width: img.width,
         height: img.height,
-        data: ctx.getImageData(0, 0, img.width, img.height).data
+        data: new Uint8ClampedArray(imageData.data)
       });
-      img.close?.();
+      img.close();
     }
     return layers;
   }
