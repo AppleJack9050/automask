@@ -1,5 +1,5 @@
-import os, json, sqlite3
-import pika, requests
+import os, json
+import pika
 from fileProcessor import FileProcessor
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")

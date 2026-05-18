@@ -1,26 +1,37 @@
 # AutoMask Application Quick Start Guide
 ## If building for the first time 
-To build the images from scratch you will have to make sure that you have Grounded-SAM-2[https://github.com/IDEA-Research/Grounded-SAM-2/tree/main] downloaded, and inside of the image-processor subfolder as this is where the image stores the model. You don't need to run any of the scripts to install it this is all handled in the Dockerfiles. Building may take a little while, as the models and all their dependenices are quite large.
+### Using SAM3
+1. To install SAM3 the instructions are provided here[https://github.com/facebookresearch/sam3/tree/main]. This should be cloned into the image processor subfolder.
+2. To download the checkpoints access on huggingface is required to the repo[https://huggingface.co/facebook/sam3.1]. 
 
-**If you are using a mac M1 or later images are supplied here[]**
+3. Create a hf access token.
+
+4. Create a .env file in the image processor subfolder, and set the HF_TOKEN environment variable to be the access token made
+
+### Using SAM2
+To build the images from scratch you will have to make sure that you have Grounded-SAM-2[https://github.com/IDEA-Research/Grounded-SAM-2/tree/main] downloaded, and inside of the image-processor subfolder as this is where the image stores the model. You don't need to run any of the scripts to install it this is all handled in the Dockerfiles. Building may take a little while, as the models and all their dependenices are quite large.
+### DockerCompose File
+Set the ```USE_SAM3``` environment variable to 0.
 
 ## Running With Docker Compose (Recommended)
 
-1. Make sure docker and groundedSAM2 are installed correctly.
+1. Make sure docker and either SAM3 or groundedSAM2 are installed correctly.
 
 2. run  ```docker compose up```
 
 ## Running With Kubernetes
 Otherwise if you have the extra power, to run with Kubernetes:
-1. Install Minikube[https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download] for local cluster management.
+1. If Using SAM3, set the ```HF_TOKEN``` in the congigmap.yml to be your token and set ```USE_SAM3``` to '1'.
 
-2. Install Helm[https://helm.sh/docs/intro/install/] (Used for KEDA)
+2. Install Minikube[https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download] for local cluster management.
 
-3. run ```minukube start```
+3. Install Helm[https://helm.sh/docs/intro/install/] (Used for KEDA)
 
-4. Install KEDA[https://keda.sh/docs/2.19/deploy/]
+4. run ```minukube start```
 
-5. run ```kubectl apply -f k8s```
+5. Install KEDA[https://keda.sh/docs/2.19/deploy/]
+
+6. run ```kubectl apply -f k8s```
 
 ## Usage Guide
 ### Datasets

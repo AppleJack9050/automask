@@ -35,7 +35,7 @@ spec:
               memory: "2Gi"
             limits:
               memory: "8Gi"
-          #     nvidia.com/gpu: 1
+              nvidia.com/gpu: 1
   
           startupProbe:
             exec:
