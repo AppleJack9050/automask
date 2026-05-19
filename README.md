@@ -8,6 +8,10 @@
 
 4. Create a .env file in the image processor subfolder, and set the HF_TOKEN environment variable to be the access token made
 
+
+**Note** 
+If using SAM3 without a CUDA environment, some modifications to the SAM3 source code is required.
+
 ### Using SAM2
 To build the images from scratch you will have to make sure that you have Grounded-SAM-2[https://github.com/IDEA-Research/Grounded-SAM-2/tree/main] downloaded, and inside of the image-processor subfolder as this is where the image stores the model. You don't need to run any of the scripts to install it this is all handled in the Dockerfiles. Building may take a little while, as the models and all their dependenices are quite large.
 ### DockerCompose File
@@ -20,6 +24,8 @@ Set the ```USE_SAM3``` environment variable to 0.
 2. run  ```docker compose up```
 
 ## Running With Kubernetes
+These images are built for arm (Mac) architecture, it may require building, tagging and using docker hub if using on alternative formats.
+
 Otherwise if you have the extra power, to run with Kubernetes:
 1. If Using SAM3, set the ```HF_TOKEN``` in the congigmap.yml to be your token and set ```USE_SAM3``` to '1'.
 

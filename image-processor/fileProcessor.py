@@ -22,7 +22,6 @@ class FileProcessor():
     def __select_sam_model(self) -> SAM3Processor | SAM2Processor:
         if os.getenv("USE_SAM3") == "1":
             print("Using SAM3...")
-            print(self.device, self.upload_directory)
             return SAM3Processor(self.device, self.upload_directory)
         print("Using SAM2...")
         return SAM2Processor(self.device, self.upload_directory)
@@ -48,7 +47,7 @@ class FileProcessor():
         original_upload_dir = self.upload_directory
 
         if saved:
-            self.upload_directory = self.saved_directory
+            self.inference_model.upload_directory = self.saved_directory
 
         while not self.file_q.empty():
             try:
@@ -59,7 +58,7 @@ class FileProcessor():
                 self.file_q.task_done()
     
         print(f'Finished Processing {datetime.now()}')
-        self.upload_directory = original_upload_dir
+        self.inference_model.upload_directory = original_upload_dir
 
     def __process_file(self, user: str, file: str, prompt: str, positive: bool, highlight: bool, saved: bool):
         self.target_processed_folder = Path(self.processed_directory) / user / Path(file).stem
@@ -75,7 +74,7 @@ class FileProcessor():
             self.inference_model.process_empty_prompt(user, mask_dir, file)
             self.__move_processed_file(user, file, saved)
 
-        else:   
+        else:
             self.inference_model.process_text_prompt(user, mask_dir, file, prompt)
             self.__move_processed_file(user, file, saved)
 

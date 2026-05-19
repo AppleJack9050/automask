@@ -11,7 +11,7 @@ try:
     from sam2.sam2_image_predictor import SAM2ImagePredictor
     from groundingdino.util.inference import load_model, load_image, predict, box_convert
 except:
-    print("Grounded SAM2 Dependencies not installed. skipping..")
+    print("Grounded SAM2 Dependencies not installed. skipping...")
 
 BOX_THRESHOLD = 0.35
 TEXT_THRESHOLD = 0.25

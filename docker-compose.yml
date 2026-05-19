@@ -19,7 +19,7 @@ services:
       - UPLOAD_DIR=/uploads
       - PROCESSED_DIR=/processed
       - PYTORCH_ENABLE_MPS_FALLBACK=1
-      - USE_SAM3=0
+      - USE_SAM3=1
       - HF_TOKEN=${HF_TOKEN}
     volumes:
       - uploads:/uploads

@@ -1,6 +1,8 @@
---extra-index-url https://download.pytorch.org/whl/cu121
 opencv-python-headless
-torch
+triton
+setuptools
+wheel
+torch==2.7.0 
 torchvision
 transformers==4.26.1
 kornia
